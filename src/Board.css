@@ -19,12 +19,11 @@ svg {
 
 path {
   stroke: black;
-  stroke-width: 1px;
-  fill: white;
+  stroke-width: 2px;
 }
 
 path:hover {
-  fill: lightblue
+  stroke-width: 10px;
 }
 
 /* :root {

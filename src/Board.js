@@ -1,106 +1,144 @@
 import React from 'react'
 import './Board.css'
-// import { generateVoronoiPoints, generateL1Voronoi, cleanData } from "manhattan-voronoi";
-// import { d3 } from "d3-voronoi"
 import { Delaunay } from "d3-delaunay";
+import {polygon, union} from "@turf/turf"
 
 
-// export class OversimplifiedCanvas extends React.Component {
-//     constructor(props) {
-//         super(props)
-//         // cleanData()
+class mapTile {
+    constructor(polygon, data, id) {
+        this.polygon = polygon
+        this.id = id
 
-        
-//         const numSites = 100
-//         var width = window.innerWidth
-//         var height = window.innerHeight
-        
-//         var sites = []
-        
-//         for (let i = 0; i < numSites; i++) {
-//             sites.push([this.randint(width), this.randint(height)])
-//         }
-//         // var sites = this.generateSites(numSites, width, height)
-        // var sites = [[42,295],[42,359],[50,302],[53,307],[54,119],[55,95],[57,245],[60,244],[60,344],[61,117],[67,234],[71,227],[74,255],[78,318],[82,178],[85,191],[94,46],[97,151],[97,289],[98,264],[101,180],[101,227],[105,343],[107,178],[110,134],[110,192],[111,59],[112,106],[112,165],[121,97],[122,176],[126,178],[132,258],[136,165],[141,238],[143,333],[144,292],[147,267],[153,235],[155,163],[159,310],[160,221],[160,230],[162,255],[162,269],[168,190],[169,78],[169,223],[169,325],[171,181],[173,252],[177,127],[179,232],[182,210],[185,288],[187,181],[188,271],[191,280],[191,281],[195,213],[195,284],[197,94],[197,227],[198,227],[203,159],[204,182],[206,221],[211,152],[211,258],[212,127],[213,223],[215,203],[215,207],[215,285],[217,247],[219,119],[223,242],[223,282],[227,299],[228,249],[233,241],[234,333],[236,145],[237,232],[237,257],[240,264],[241,215],[245,170],[246,220],[247,173],[247,185],[248,279],[249,176],[250,307],[251,79],[253,328],[273,292],[274,236],[277,125],[280,110],[281,324],[282,269],[284,63],[284,209],[297,216],[298,129],[307,45],[307,217],[312,339],[316,98],[318,231],[321,258],[326,184],[329,200],[330,110],[335,196],[336,271],[337,311],[339,340],[346,329],[347,247],[349,142],[349,254],[353,224],[354,90],[368,253],[386,296],[387,341]]
-//         // var sites = [[4,6], [3,10], [10,6], [1,2]]
+        this.isOcean = data.isOcean
+        this.name = data.name
+        this.numCities = data.numCities
 
-//         // var str = sites.map((site) => {
-//         //     return "[" + site[0] + ", " + site[1] + "]"
-//         // })
-        
-//         // console.log(str.join())
-//         // console.log(str)
-//         var data = generateL1Voronoi(sites, width, height) 
-//         const svg = data.map((site, num) => {
-//             return (
-//                 <path key={num} d={site.d} />
-//             )
-//         })
-        
-        
-//         // const svg = this.getSVG(sites, width, height)
+        this.path = this.polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"
+    }
 
-//         this.state = {
-//             width: width,
-//             height: height,
-//             sites: sites,
-//             svg: svg
-//         }
-//     }
-
-//     render() {
-//         return (
-//             <svg width={window.innerWidth} height={window.innerHeight}>
-//                 {this.state.svg}
-//             </svg>
-//         );
-//     }
-// }
-// M 0 317 L20 317 L27.5 309.5 L27.5 303 L157.5 173 L157.5 110.50000000000001 L137 41.5 L137 90 L157.5 110.5 L97.5 0 L97.5 2 L137 41.5 Z
+    toPath() {
+        return (
+            <>
+                <path id={this.id} key={this.id} clipPath={"url(#c" + this.id + ")"} fill={getRandomColor()} d={this.polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"} />
+                <clipPath id={"c" + this.id}>
+                    <use xlinkHref={"#" + this.id} />
+                </clipPath>
+            </>)
+    }
+}
 
 
 export class OversimplifiedBoard extends React.Component {
     constructor(props) {
+        console.log("------")
         super(props)
 
-        // this.points = [[50, 50], [800, 600], [1300, 900], [1800, 1000]]
-        this.points = [[42,295],[42,359],[50,302],[53,307],[54,119],[55,95],[57,245],[60,244],[60,344],[61,117],[67,234],[71,227],[74,255],[78,318],[82,178],[85,191],[94,46],[97,151],[97,289],[98,264],[101,180],[101,227],[105,343],[107,178],[110,134],[110,192],[111,59],[112,106],[112,165],[121,97],[122,176],[126,178],[132,258],[136,165],[141,238],[143,333],[144,292],[147,267],[153,235],[155,163],[159,310],[160,221],[160,230],[162,255],[162,269],[168,190],[169,78],[169,223],[169,325],[171,181],[173,252],[177,127],[179,232],[182,210],[185,288],[187,181],[188,271],[191,280],[191,281],[195,213],[195,284],[197,94],[197,227],[198,227],[203,159],[204,182],[206,221],[211,152],[211,258],[212,127],[213,223],[215,203],[215,207],[215,285],[217,247],[219,119],[223,242],[223,282],[227,299],[228,249],[233,241],[234,333],[236,145],[237,232],[237,257],[240,264],[241,215],[245,170],[246,220],[247,173],[247,185],[248,279],[249,176],[250,307],[251,79],[253,328],[273,292],[274,236],[277,125],[280,110],[281,324],[282,269],[284,63],[284,209],[297,216],[298,129],[307,45],[307,217],[312,339],[316,98],[318,231],[321,258],[326,184],[329,200],[330,110],[335,196],[336,271],[337,311],[339,340],[346,329],[347,247],[349,142],[349,254],[353,224],[354,90],[368,253],[386,296],[387,341]]
+        this.points = getRandPoints(1920, 1080, 100)
         this.delaunay = Delaunay.from(this.points)
         this.voronoi = this.delaunay.voronoi([0, 0, 1920, 1080])
 
-        this.svgRender = [...this.voronoi.cellPolygons()].map((polygon) => {
-            var d = polygon.map((point, i) => {if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1]}).join(" ")
-            // d[0] = "M"
-            d += "Z"
-            return <path key={d} d={d}/>
+        this.svgRender = [...this.voronoi.cellPolygons()].map((polygon, i) => {
+            var d = polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"
+            return (
+                <>
+                    <path id={i} key={i} d={d} style={{fill: "rgba(0, 0, 0, 0)"}} clipPath={"url(#c" + i + ")"} />
+                    <clipPath id={"c" + i}>
+                        <use xlinkHref={"#" + i} />
+                    </clipPath>
+                </> 
+            )
         })
 
-        // console.log()
+        this.mapTiles = []
 
-        // for (var cell in [...this.voronoi.cellPolygons()]) {
-        //     var str = ""
-        //     console.log(cell)
-        //     // for  
-        // }
+        var points = [...range(0, this.points.length)]
 
-        // this.svgRender = this.voronoi.render().split("M").filter((str) => {return str !== ""}).map( (str) => {
-        //         return <path key={str} d={"M" + str + "Z"}/>
-        //     }
-        // )
-        console.log(this.svgRender)
+        var polygons = [...this.voronoi.cellPolygons()]
+
+        while (points.length > 0) {
+            let index = randChoice(points)
+            let base = polygons[index]
+            let touching = [...this.voronoi.neighbors(index)].filter((value) => {return contains(points, value)})
+            let numPolys = Math.floor(Math.random() * 6)
+            
+
+            for (let _ = 0; _ < numPolys; _++) {
+                
+                if (touching.length === 0) break
+                let newI = randChoice(touching)
+                let newPoly = polygons[newI]
+
+                points.splice(points.indexOf(newI))
+
+                base = combine(base, newPoly)
+
+                touching.push(...[...this.voronoi.neighbors(newI)].filter((value) => { return contains(points, value) }))
+
+                touching = Array.from(new Set(touching))
+            }
+            this.mapTiles.push(new mapTile(base, {}, points.length))
+        }
+        console.log(this.mapTiles)
     }
 
 
     render() {
         return (
-            <svg width={window.innerWidth} height={window.innerHeight}>
-                {this.svgRender}
-            </svg>
+            <>
+                <svg width={window.innerWidth} height={window.innerHeight}>
+                    {this.mapTiles.map((tile) => { return tile.toPath() })}
+                </svg>
+            </>
         );
     }
 }
 
-// function randint(max) {
-//     // random integer 0 to max - 1
-//     return Math.floor(Math.random() * max)
-// }
+function getRandPoints(maxX, maxY, num) {
+    const points = []
+    for (let i = 0; i < num; i++) {
+        let x = Math.floor(Math.random() * maxX)
+        let y = Math.floor(Math.random() * maxY)
+        while (contains(points, [x,y])) {
+            x = Math.floor(Math.random() * maxX)
+            y = Math.floor(Math.random() * maxY)
+        }
+        points.push([x, y])
+    }
+    return points
+}
+
+function randChoice(arr) {
+    return arr.splice(Math.floor(Math.random() * arr.length), 1)[0]
+}
+
+function* range(start, end) {
+    let state = start;
+    while (state < end) {
+        yield state;
+        state += 1;
+    }
+    return;
+};
+
+function combine(poly1, poly2) {
+    var realPoly1 = polygon([poly1])
+    var realPoly2 = polygon([poly2])
+    return union(realPoly1, realPoly2).geometry.coordinates[0]
+}
+
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function contains(arr, value) {
+    for (var v of arr) {
+        if (JSON.stringify(value) === JSON.stringify(v)) { return true }
+    }
+    return false
+}
