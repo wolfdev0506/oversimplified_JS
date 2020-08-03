@@ -33,21 +33,26 @@ export class OversimplifiedBoard extends React.Component {
         console.log("------")
         super(props)
 
-        this.points = getRandPoints(1920, 1080, 100)
-        this.delaunay = Delaunay.from(this.points)
-        this.voronoi = this.delaunay.voronoi([0, 0, 1920, 1080])
+        var width = window.innerWidth
+        var height = window.innerHeight
 
-        this.svgRender = [...this.voronoi.cellPolygons()].map((polygon, i) => {
-            var d = polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"
-            return (
-                <>
-                    <path id={i} key={i} d={d} style={{fill: "rgba(0, 0, 0, 0)"}} clipPath={"url(#c" + i + ")"} />
-                    <clipPath id={"c" + i}>
-                        <use xlinkHref={"#" + i} />
-                    </clipPath>
-                </> 
-            )
-        })
+        this.points = getRandPoints(width, height, 100)
+        this.delaunay = Delaunay.from(this.points)
+        this.voronoi = this.delaunay.voronoi([0, 0, width, height])
+
+        this.svgRender = this.points.map((xy) => <circle cx={xy[0]} cy={xy[1]} r={5} fill="#000"/>)
+
+        // this.svgRender = [...this.voronoi.cellPolygons()].map((polygon, i) => {
+        //     var d = polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"
+        //     return (
+        //         <>
+        //             <path id={i} key={i} d={d} style={{fill: "rgba(0, 0, 0, 0)"}} clipPath={"url(#c" + i + ")"} />
+        //             <clipPath id={"c" + i}>
+        //                 <use xlinkHref={"#" + i} />
+        //             </clipPath>
+        //         </> 
+        //     )
+        // })
 
         this.mapTiles = []
 
@@ -63,12 +68,11 @@ export class OversimplifiedBoard extends React.Component {
             
 
             for (let _ = 0; _ < numPolys; _++) {
-                
                 if (touching.length === 0) break
                 let newI = randChoice(touching)
                 let newPoly = polygons[newI]
 
-                points.splice(points.indexOf(newI))
+                points.splice(points.indexOf(newI), 1)
 
                 base = combine(base, newPoly)
 
@@ -87,6 +91,7 @@ export class OversimplifiedBoard extends React.Component {
             <>
                 <svg width={window.innerWidth} height={window.innerHeight}>
                     {this.mapTiles.map((tile) => { return tile.toPath() })}
+                    {this.svgRender}
                 </svg>
             </>
         );
