@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@chriscourses/perlin-noise": "^1.0.5",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -10,6 +11,7 @@
     "boardgame.io": "^0.39.16",
     "d3-delaunay": "^5.3.0",
     "manhattan-voronoi": "git+https://github.com/mlknz/manhattan-voronoi.git#fix_points_nudge",
+    "mathjs": "^7.1.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1"
