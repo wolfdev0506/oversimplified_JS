@@ -9,26 +9,29 @@ class IsEnclaveError extends Error { }
 class AssertionError extends Error { }
 
 class MapTile {
-    constructor(polygon, points, pointsIndex, touchPointsIndex, data, id) {
+    constructor(polygon, points, cellsIndex, touchCellsIndex, data, id) {
         this.polygon = polygon
         this.id = id
         this.points = points
-        this.cellsIndex = pointsIndex
-        this.touchCellsIndex = touchPointsIndex
-        this.neighbors = []
+        this.cellsIndex = cellsIndex
+        this.touchCellsIndex = touchCellsIndex
 
+        this._data = data
         this.isOcean = data.isOcean
         this.name = data.name
         this.numCities = data.numCities
         this.region = data.region
 
         // this.color = this.region.getSimilarColor()
-        this.color = this.points.length > 1 ? (this.isOcean ? "blue" : "green") : "red"
+        this.validOne = false
+        this.centerPoint = getMiddlestPoint(this.points)
+        this.color = this.points.length > 1 ? (this.isOcean ? "blue" : "green") : (this.isOcean ? "DodgerBlue" : "DarkGreen")
         this.path = this.polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"
     }
 
-    addNeighbors(newNeighbors) {
-        return this.neighbors.push(...newNeighbors)
+    makeValid() {
+        this.validOne = true
+        this.color = (this.points.length > 1 || this.validOne) ? (this.isOcean ? "blue" : "green") : (this.isOcean ? "DodgerBlue" : "DarkGreen")
     }
 
     toPath() {
@@ -50,8 +53,10 @@ export class GameBoard extends React.Component {
         this.width = window.innerWidth
         this.circles = []
         this.mapTiles = []
+        this.connectLines = []
+        this.neighborMap = new Map()
 
-        this.points = Array(2000).fill(0).map(() =>
+        this.points = Array(3000).fill(0).map(() =>
             [Math.floor(Math.random() * this.width),
             Math.floor(Math.random() * this.height)])
 
@@ -61,10 +66,10 @@ export class GameBoard extends React.Component {
 
         this.delaunay = Delaunay.from(this.points)
         this.voronoi = this.delaunay.voronoi([0, 0, this.width, this.height])
-        
+
         var polygons = [...this.voronoi.cellPolygons()]
         var polygonsIndex = polygons.map((v, i) => i)
-        
+
         this.state = {
             polygonsIndex: polygonsIndex,
             polygons: polygons,
@@ -79,6 +84,10 @@ export class GameBoard extends React.Component {
     }
 
     handleClick() {
+        this.generateMap()
+    }
+
+    generateMap() {
         var touching = this.state.touching.slice()
         var polygonsIndex = this.state.polygonsIndex.slice()
         var polygons = this.state.polygons.slice()
@@ -106,7 +115,7 @@ export class GameBoard extends React.Component {
                 let nextIndex = touching[0]
                 if (touching.length > 1) {
                     let nextPerimeter = getPerimeterFromPolys(basePolygon, polygons[nextIndex])
-                    for (let i = 1; i < Math.min(touching.length, 3); i++) {
+                    for (let i = 1; i < Math.min(touching.length, isLand ? 3 : touching.length); i++) {
                         let tmpI = touching[i]
                         let tmpPerimeter = getPerimeterFromPolys(basePolygon, polygons[tmpI])
 
@@ -143,26 +152,83 @@ export class GameBoard extends React.Component {
                 touching.push(...[...this.voronoi.neighbors(nextIndex)].filter((value) => { return contains(polygonsIndex, value) }))
             }
 
-            this.mapTiles.push(new MapTile(basePolygon, 
-                polygonIndexes.map((v) => this.points[v]), 
-                polygonIndexes, 
-                [...new Set(polygonIndexes.map((v) => [...this.voronoi.neighbors(v)]).flat().filter((v) => !(polygonIndexes.includes(v))))], 
-                { isOcean: !isLand }, 
-                polygonsIndex.length))
+            this.mapTiles.push(
+                new MapTile(basePolygon,
+                    polygonIndexes.map((v) => this.points[v]),
+                    polygonIndexes,
+                    [...new Set(polygonIndexes.map((v) => [...this.voronoi.neighbors(v)]).flat().filter((v) => !(polygonIndexes.includes(v))))],
+                    { isOcean: !isLand },
+                    polygonsIndex.length))
 
             this.setState({
                 polygonsIndex: polygonsIndex,
                 polygons: polygons,
                 touching: touching
             })
+            // this.forceUpdate()
+        }
+        var smallNeighborMap = new Map()
+        for (var i = 0; i < this.mapTiles.length; i++) {
+            for (let polyI of [...this.mapTiles[i].cellsIndex]) {
+                smallNeighborMap.set(polyI, i)
+            }
+        }
+
+        for (i = 0; i < this.mapTiles.length; i++) {
+            let touching = new Set()
+            for (let polyI of [...this.mapTiles[i].touchCellsIndex]) {
+                touching.add(smallNeighborMap.get(polyI))
+            }
+            this.neighborMap.set(i, touching)
+        }
+
+        var onePolyTilesIndexes = [...this.neighborMap.keys()].filter((v) => this.mapTiles[v].points.length === 1)
+        var validOnePolyTiles = onePolyTilesIndexes.filter((v) => [...this.neighborMap.get(v)].filter((v2) => this.mapTiles[v2].isOcean === this.mapTiles[v].isOcean).length > 0)
+        var dontFit = []
+        console.log(onePolyTilesIndexes, validOnePolyTiles)
+
+        for (let polyI of validOnePolyTiles) {
+            let validTouching = [...this.neighborMap.get(polyI)].filter((v) => this.mapTiles[v].points.length !== 1).filter((v) => this.mapTiles[v].isOcean === this.mapTiles[polyI].isOcean)
+            let perimeters = validTouching.map((v) => getPerimeterFromPolys(this.mapTiles[polyI].polygon, this.mapTiles[v].polygon))
+            let perimeterDiffs = perimeters.map((v, i) => v - perimeter(this.mapTiles[validTouching[i]].polygon))
+            let bestFitI = perimeterDiffs.indexOf(Math.min(...perimeterDiffs))
+            if (perimeters[bestFitI] !== Number.MAX_VALUE) {
+                let baseTile = this.mapTiles[validTouching[bestFitI]]
+                let mergeTile = this.mapTiles[polyI]
+                this.mapTiles[validTouching[bestFitI]] = new MapTile(
+                    combine(baseTile.polygon, mergeTile.polygon),
+                    baseTile.points.concat(mergeTile.points),
+                    baseTile.cellsIndex.concat(mergeTile.cellsIndex),
+                    baseTile.touchCellsIndex.concat(mergeTile.touchCellsIndex),
+                    baseTile._data,
+                    baseTile.id
+                )
+            } else {
+                dontFit.push(polyI)
+                console.log(polyI)
+            }
+        }
+        validOnePolyTiles = validOnePolyTiles.filter((v) => !dontFit.includes(v))
+
+        // for (var key of validOnePolyTiles) {
+        //     if (this.mapTiles[key].points.length === 1) {
+        //         for (var v of this.neighborMap.get(key)) {
+        //             this.connectLines.push([this.mapTiles[key].centerPoint, this.mapTiles[v].centerPoint])
+        //         }
+        //     }
+        // }
+
+        for (let removeTile of validOnePolyTiles) {
+            this.mapTiles[removeTile] = NULL_TILE
         }
     }
 
 
     render() {
         return (
-            <svg width={this.width} height={this.height} onClick={this.handleClick}> 
-                {this.mapTiles.map((tile) => { return tile.toPath() })}
+            <svg width={this.width} height={this.height} onClick={this.handleClick}>
+                {this.mapTiles.map((v) => v.toPath())}
+                {this.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />)}
                 {this.circles}
             </svg>
         )
@@ -203,11 +269,16 @@ function perimeter(poly) {
 
 function combine(poly1, poly2) {
     if (poly1.slice().filter((v) => { return contains(poly2, v) }).length < 2) {
+        console.log(poly1.slice().filter((v) => { return contains(poly2, v) }), poly1, poly2)
         throw new OnlyOneConnectingPointError()
     }
-
-    var realPoly1 = polygon([poly1])
-    var realPoly2 = polygon([poly2])
+    try {
+        var realPoly1 = polygon([poly1])
+        var realPoly2 = polygon([poly2])
+    } catch (e) {
+        console.log(poly1, poly2)
+        throw e
+    }
     var uPoly = union(realPoly1, realPoly2)
     if (uPoly.geometry.coordinates.length > 1) {
         throw new IsEnclaveError()
@@ -240,5 +311,24 @@ function assertNot(val1, val2) {
         throw AssertionError(val1 + " == " + val2)
     } else {
         return val1
+    }
+}
+
+function getMiddlestPoint(points) {
+    points = [...points]
+    let averageX = points.map((v) => v[0]).reduce((p, v) => p + v) / points.length
+    let averageY = points.map((v) => v[1]).reduce((p, v) => p + v) / points.length
+
+    points.sort((a, b) => (Math.abs(a[0] - averageX) - Math.abs(b[0] - averageX)) + (Math.abs(a[1] - averageY) - Math.abs(b[1] - averageY)))
+    return points[0]
+}
+
+function stepDown(nums, stepAt) {
+    return new Set([...nums].filter((v) => v !== stepAt).map((v) => v > stepAt ? --v : v))
+}
+
+const NULL_TILE = {
+    toPath: () => {
+        return ""
     }
 }

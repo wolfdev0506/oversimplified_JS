@@ -33,6 +33,11 @@ ellipse {
   fill-opacity: 0;
 }
 
+line {
+  stroke: yellow;
+  stroke-width: 2px;
+}
+
 /* :root {
   background-color: black;
 } */
