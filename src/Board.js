@@ -1,30 +1,37 @@
 import React from 'react'
 import './Board.css'
 import { Delaunay } from "d3-delaunay";
-import { polygon, union} from "@turf/turf"
+import { polygon, union } from "@turf/turf"
 import { noise } from '@chriscourses/perlin-noise'
-import {randomInt} from "mathjs"
-
 
 class OnlyOneConnectingPointError extends Error { }
 class IsEnclaveError extends Error { }
-
+class AssertionError extends Error { }
 
 class MapTile {
-    constructor(polygon, points, touchPoints, data, id) {
+    constructor(polygon, points, cellsIndex, touchCellsIndex, data, id) {
         this.polygon = polygon
         this.id = id
         this.points = points
-        this.touchPoints = touchPoints
+        this.cellsIndex = cellsIndex
+        this.touchCellsIndex = touchCellsIndex
 
+        this._data = data
         this.isOcean = data.isOcean
         this.name = data.name
         this.numCities = data.numCities
         this.region = data.region
 
         // this.color = this.region.getSimilarColor()
-        this.color = this.isOcean? "blue" : "green"
+        this.validOne = false
+        this.centerPoint = getMiddlestPoint(this.points)
+        this.color = this.points.length > 1 ? (this.isOcean ? "blue" : "green") : (this.isOcean ? "DodgerBlue" : "DarkGreen")
         this.path = this.polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"
+    }
+
+    makeValid() {
+        this.validOne = true
+        this.color = (this.points.length > 1 || this.validOne) ? (this.isOcean ? "blue" : "green") : (this.isOcean ? "DodgerBlue" : "DarkGreen")
     }
 
     toPath() {
@@ -39,119 +46,119 @@ class MapTile {
 }
 
 
-class Region {
-    constructor(color) {
-        this.color = color
+class GameBoardComponent extends React.Component {
+    constructor({map, lines=false, circles=false}) {
+        super({map: map, lines: lines, circles: circles})
     }
 
-    getSimilarColor() {
-        let color = []
-        for (let c of this.color) {
-            color.push(Math.min(0, Math.max(255, Math.floor((Math.random * 10) - 5) + c)))
-        }
-        return color
-    }
+    render() {
+        return (
+            <svg width={this.props.map.width} height={this.props.map.height}>
+                {this.props.map.mapTiles.map((v) => v.toPath())}
+                {this.props.lines? this.props.map.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />): []}
+                {this.props.circles? this.props.map.circles: []}
+            </svg>
 
-    getColor() {
-        let color = "#"
-        for (let c of this.color) {
-            color += c.toString(16)
-        }
-        return color
+        )
     }
 }
 
 
-export class OversimplifiedBoard extends React.Component {
+export class GameBoard extends React.Component {
     constructor(props) {
-        console.log("------")
         super(props)
-        const width = window.innerWidth
-        const height = window.innerHeight
-        
-        
-        this.points = getRandPoints(width, height, 2000)
-        this.delaunay = Delaunay.from(this.points)
-        this.voronoi = this.delaunay.voronoi([0, 0, width, height])
-        
-        this.ellipses = []
-        for (var p of this.points) {
-            this.ellipses.push(
-                <circle cx={p[0]} cy={p[1]} r={5} fill={isLandPoint(p)? "red" : "black"}/>
-            )
-        }
+
+        this.height = window.innerHeight
+        this.width = window.innerWidth
+        this.circles = []
         this.mapTiles = []
+        this.connectLines = []
+        this.neighborMap = new Map()
+
+        this.points = Array(3000).fill(0).map(() =>
+            [Math.floor(Math.random() * this.width),
+            Math.floor(Math.random() * this.height)])
+
+        this.points = this.points.map(JSON.stringify).reverse().filter(function (e, i, a) {
+            return a.indexOf(e, i + 1) === -1;
+        }).reverse().map(JSON.parse)
+
+        this.delaunay = Delaunay.from(this.points)
+        this.voronoi = this.delaunay.voronoi([0, 0, this.width, this.height])
 
         var polygons = [...this.voronoi.cellPolygons()]
-        var polygonsIndex = [...range(0, polygons.length)]
-        var touching = []
+        var polygonsIndex = polygons.map((v, i) => i)
 
         this.state = {
             polygonsIndex: polygonsIndex,
             polygons: polygons,
-            touching: touching
+            touching: []
         }
-
         this.handleClick = this.handleClick.bind(this)
+        for (var p of this.points) {
+            this.circles.push(
+                <circle cx={p[0]} cy={p[1]} r={5} fill={isLandPoint(p) ? "red" : "black"} />
+            )
+        }
     }
 
     handleClick() {
+        this.generateMap()
+    }
+
+    generateMap() {
         var touching = this.state.touching.slice()
         var polygonsIndex = this.state.polygonsIndex.slice()
         var polygons = this.state.polygons.slice()
 
         while (polygonsIndex.length > 0) {
-            console.log(polygonsIndex.length)
+            if (polygonsIndex.length % 5 === 0) console.log(polygonsIndex.length)
+
             if (touching.length > 0) {
-                var baseI = randChoice(touching)
-                polygonsIndex = polygonsIndex.filter((v) => v !== baseI)
+                var baseIndex = touching[Math.floor(Math.random() * touching.length)]
+                polygonsIndex = polygonsIndex.filter((v) => v !== baseIndex)
             } else {
-                var baseI = randChoice(polygonsIndex)
+                var baseIndex = polygonsIndex.splice(Math.floor(Math.random() * polygonsIndex.length), 1)[0]
             }
 
-            let base = polygons[baseI]
-            let isLand = isLandPoint(this.points[baseI])
+            let polygonIndexes = [baseIndex]
+            let basePolygon = polygons[baseIndex]
+            let isLand = isLandPoint(this.points[baseIndex])
             let numPolys = Math.floor(Math.random() * (isLand ? 15 : 30)) + 8
 
-            touching = [...this.voronoi.neighbors(baseI)].filter((value) => { return contains(polygonsIndex, value) })
+            touching = [...this.voronoi.neighbors(baseIndex)].filter((value) => { return contains(polygonsIndex, value) })
 
             for (let nPoly = 0; nPoly < numPolys; nPoly++) {
-                if (touching.length < 1) {break}
+                if (touching.length < 1) break
 
-                var newI = randChoice(touching)
-                var newPoly = polygons[newI]
-                if (touching.length > 0) {
-                    var perimeter = getPerimeterFromPolys(base, newPoly)
+                let nextIndex = touching[0]
+                if (touching.length > 1) {
+                    let nextPerimeter = getPerimeterFromPolys(basePolygon, polygons[nextIndex])
+                    for (let i = 1; i < Math.min(touching.length, isLand ? 3 : touching.length); i++) {
+                        let tmpI = touching[i]
+                        let tmpPerimeter = getPerimeterFromPolys(basePolygon, polygons[tmpI])
 
-
-                    for (let i of range(0, 4)) {
-                        let tmpI = randChoice(touching)
-                        if (polygons[tmpI] === undefined) {
-                            console.log(tmpI, polygons)
+                        if (tmpPerimeter === Number.MAX_VALUE) {
+                            touching.splice(tmpI, 1)
+                            continue
+                        } else if (tmpPerimeter < nextPerimeter) {
+                            nextPerimeter = tmpPerimeter
+                            nextIndex = tmpI
                         }
-                        let tmpPerimeter = getPerimeterFromPolys(base, polygons[tmpI])
-                        if (tmpPerimeter < perimeter) {
-                            perimeter = tmpPerimeter
-                            newPoly = polygons[tmpI]
-                            touching.push(newI)
-                            newI = tmpI
-                        }
-                        touching.push(tmpI)
                     }
                 }
-                if (isLand !== isLandPoint(this.points[newI])) {
-                    touching = touching.filter((v) => v !== newI)
+
+                touching = touching.filter((v) => v !== nextIndex)
+                let nextPoly = polygons[nextIndex]
+
+                if (isLand !== isLandPoint(this.points[nextIndex])) {
                     nPoly--
                     continue
                 }
 
-                touching = touching.filter((v) => v !== newI)
-                
                 try {
-                    if (newPoly === undefined) {
-                        console.log(polygons, newI)
-                    }
-                    base = combine(base, newPoly)
+                    basePolygon = combine(basePolygon, nextPoly)
+                    polygonIndexes.push(nextIndex)
                 } catch (e) {
                     if (e instanceof IsEnclaveError || e instanceof OnlyOneConnectingPointError) {
                         nPoly--
@@ -160,82 +167,138 @@ export class OversimplifiedBoard extends React.Component {
                         throw e
                     }
                 }
-                polygonsIndex.splice(polygonsIndex.indexOf(newI), 1)
-
+                polygonsIndex.splice(polygonsIndex.indexOf(nextIndex), 1)
+                touching.push(...[...this.voronoi.neighbors(nextIndex)].filter((value) => { return contains(polygonsIndex, value) }))
             }
-            this.mapTiles.push(new MapTile(base, [], [], {isOcean:!isLand}, polygonsIndex.length))
+
+            this.mapTiles.push(
+                new MapTile(basePolygon,
+                    polygonIndexes.map((v) => this.points[v]),
+                    polygonIndexes,
+                    [...new Set(polygonIndexes.map((v) => [...this.voronoi.neighbors(v)]).flat().filter((v) => !(polygonIndexes.includes(v))))],
+                    { isOcean: !isLand },
+                    polygonsIndex.length))
 
             this.setState({
                 polygonsIndex: polygonsIndex,
                 polygons: polygons,
                 touching: touching
+            })
+            // this.forceUpdate()
+        }
+        var smallNeighborMap = new Map()
+        for (var i = 0; i < this.mapTiles.length; i++) {
+            for (let polyI of [...this.mapTiles[i].cellsIndex]) {
+                smallNeighborMap.set(polyI, i)
             }
-            )
+        }
+
+        for (i = 0; i < this.mapTiles.length; i++) {
+            let touching = new Set()
+            for (let polyI of [...this.mapTiles[i].touchCellsIndex]) {
+                touching.add(smallNeighborMap.get(polyI))
+            }
+            this.neighborMap.set(i, touching)
+        }
+
+        var onePolyTilesIndexes = [...this.neighborMap.keys()].filter((v) => this.mapTiles[v].points.length === 1)
+        var validOnePolyTiles = onePolyTilesIndexes.filter((v) => [...this.neighborMap.get(v)].filter((v2) => this.mapTiles[v2].isOcean === this.mapTiles[v].isOcean).length > 0)
+        var dontFit = []
+        console.log(onePolyTilesIndexes, validOnePolyTiles)
+
+        for (let polyI of validOnePolyTiles) {
+            let validTouching = [...this.neighborMap.get(polyI)].filter((v) => this.mapTiles[v].points.length !== 1).filter((v) => this.mapTiles[v].isOcean === this.mapTiles[polyI].isOcean)
+            let perimeters = validTouching.map((v) => getPerimeterFromPolys(this.mapTiles[polyI].polygon, this.mapTiles[v].polygon))
+            let perimeterDiffs = perimeters.map((v, i) => v - perimeter(this.mapTiles[validTouching[i]].polygon))
+            let bestFitI = perimeterDiffs.indexOf(Math.min(...perimeterDiffs))
+
+            if (perimeters[bestFitI] !== Number.MAX_VALUE) {
+                let baseTile = this.mapTiles[validTouching[bestFitI]]
+                let mergeTile = this.mapTiles[polyI]
+                this.mapTiles[validTouching[bestFitI]] = new MapTile(
+                    combine(baseTile.polygon, mergeTile.polygon),
+                    baseTile.points.concat(mergeTile.points),
+                    baseTile.cellsIndex.concat(mergeTile.cellsIndex),
+                    baseTile.touchCellsIndex.concat(mergeTile.touchCellsIndex),
+                    baseTile._data,
+                    baseTile.id
+                )
+            } else {
+                dontFit.push(polyI)
+                console.log(polyI)
+            }
+        }
+        validOnePolyTiles = validOnePolyTiles.filter((v) => !dontFit.includes(v))
+
+        // for (var key of validOnePolyTiles) {
+        //     if (this.mapTiles[key].points.length === 1) {
+        //         for (var v of this.neighborMap.get(key)) {
+        //             this.connectLines.push([this.mapTiles[key].centerPoint, this.mapTiles[v].centerPoint])
+        //         }
+        //     }
+        // }
+
+        for (let removeTile of validOnePolyTiles) {
+            this.mapTiles[removeTile] = NULL_TILE
         }
     }
 
 
     render() {
         return (
-            <div>
-                <svg width={window.innerWidth} height={window.innerHeight} onClick={this.handleClick}>
-                    {this.mapTiles.map((tile) => { return tile.toPath() })}
-                    {this.ellipses}
-                </svg>
-            </div>
-        );
-    }
-}
-
-function getRandPoints(maxX, maxY, num) {
-    var points = new Set()
-    while (points.size < num) {
-        points.add(
-            [randomInt(0, maxX),
-            randomInt(0, maxY)]
+            <svg width={this.width} height={this.height} onClick={this.handleClick}>
+                {this.mapTiles.map((v) => v.toPath())}
+                {this.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />)}
+                {this.circles}
+            </svg>
         )
     }
-    // for (let i = 0; i < num; i++) {
-    //     // let x = randomInt(0, maxX)
-    //     // let y = randomInt(0, maxY)
-    //     let x = Math.floor(Math.random() * maxX)
-    //     let y = Math.floor(Math.random() * maxY)
-    //     while (contains(points, [x, y])) {
-    //         // x = randomInt(0, maxX)
-    //         // y = randomInt(0, maxY)
-    //         x = Math.floor(Math.random() * maxX)
-    //         y = Math.floor(Math.random() * maxY)
-    //     }
-    //     points.push([x, y])
-    // }
-    points = [...points]
-    for (var p of points) {
-        if (p.length !== 2)
-        console.log(p)
-    } 
-    return points
 }
 
-function randChoice(arr) {
-    return arr.splice(Math.floor(Math.random() * arr.length), 1)[0]
+function isLandPoint(point) {
+    return noise(point[0] / 100, point[1] / 100, 0) > 0.5
 }
 
-function* range(start, end) {
-    let state = start;
-    while (state < end) {
-        yield state;
-        state += 1;
+
+function getPerimeterFromPolys(poly1, poly2) {
+    assertNot(poly1, undefined); assertNot(poly2, undefined)
+    try {
+        return assertNot(perimeter(combine(poly1, poly2)), undefined)
+    } catch (e) {
+        if (e instanceof IsEnclaveError || e instanceof OnlyOneConnectingPointError) {
+            return Number.MAX_VALUE
+        } else {
+            throw e
+        }
     }
-    return;
-};
+}
+
+
+function distance(xy1, xy2) {
+    return Math.sqrt(Math.pow(xy1[0] - xy2[0], 2) + Math.pow(xy1[1] - xy2[1], 2))
+}
+
+
+function perimeter(poly) {
+    var currentDistance = 0
+    for (var i = 0; i < poly.length - 1; i++) {
+        currentDistance += distance(poly[i], poly[i + 1])
+    }
+    return currentDistance
+}
 
 function combine(poly1, poly2) {
     if (poly1.slice().filter((v) => { return contains(poly2, v) }).length < 2) {
+        console.log(poly1.slice().filter((v) => { return contains(poly2, v) }), poly1, poly2)
         throw new OnlyOneConnectingPointError()
     }
-
-    var realPoly1 = polygon([poly1])
-    var realPoly2 = polygon([poly2])
+    try {
+        var realPoly1 = polygon([poly1])
+        var realPoly2 = polygon([poly2])
+    } catch (e) {
+        console.log(poly1, poly2)
+        throw e
+    }
     var uPoly = union(realPoly1, realPoly2)
     if (uPoly.geometry.coordinates.length > 1) {
         throw new IsEnclaveError()
@@ -255,30 +318,37 @@ function contains(arr, value) {
     }
 }
 
-function distance(xy1, xy2) {
-    return Math.sqrt(Math.pow(xy1[0] - xy2[0], 2) + Math.pow(xy1[1] - xy2[1], 2))
-}
-
-function perimeter(poly) {
-    var currentDistance = 0
-    for (var i = 0; i < poly.length - 1; i++) {
-        currentDistance += distance(poly[i], poly[i + 1])
-    }
-    return currentDistance
-}
-
-function getPerimeterFromPolys(poly1, poly2) {
-    try {
-        return perimeter(combine(poly1, poly2))
-    } catch (e) {
-        if (e instanceof IsEnclaveError || e instanceof OnlyOneConnectingPointError) {
-            return Number.MAX_VALUE
-        } else {
-            throw e
-        }
+function assert(val1, val2) {
+    if (JSON.stringify(val1) !== JSON.stringify(val2)) {
+        throw AssertionError(val1 + " != " + val2)
+    } else {
+        return val1
     }
 }
 
-function isLandPoint(point) {
-    return noise(point[0]/100, point[1]/100, 0) > 0.5
+function assertNot(val1, val2) {
+    if (JSON.stringify(val1) === JSON.stringify(val2)) {
+        throw AssertionError(val1 + " == " + val2)
+    } else {
+        return val1
+    }
+}
+
+function getMiddlestPoint(points) {
+    points = [...points]
+    let averageX = points.map((v) => v[0]).reduce((p, v) => p + v) / points.length
+    let averageY = points.map((v) => v[1]).reduce((p, v) => p + v) / points.length
+
+    points.sort((a, b) => (Math.abs(a[0] - averageX) - Math.abs(b[0] - averageX)) + (Math.abs(a[1] - averageY) - Math.abs(b[1] - averageY)))
+    return points[0]
+}
+
+function stepDown(nums, stepAt) {
+    return new Set([...nums].filter((v) => v !== stepAt).map((v) => v > stepAt ? --v : v))
+}
+
+const NULL_TILE = {
+    toPath: () => {
+        return ""
+    }
 }
