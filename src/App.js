@@ -3,8 +3,8 @@ import { TicTacToe } from './Game';
 import { GameBoard } from './Board'
 
 const App = Client({
-  game: TicTacToe,
-  board: GameBoard
+    game: TicTacToe,
+    board: GameBoard
 });
 
 export default App;
