@@ -1,10 +1,10 @@
 import { Client } from 'boardgame.io/react';
 import { TicTacToe } from './Game';
-import { GameBoard } from './Board'
+import { GameBoardComponent } from './Board'
 
 const App = Client({
     game: TicTacToe,
-    board: GameBoard
+    board: GameBoardComponent
 });
 
 export default App;

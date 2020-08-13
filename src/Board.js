@@ -3,6 +3,7 @@ import './Board.css'
 import { Delaunay } from "d3-delaunay";
 import { polygon, union } from "@turf/turf"
 import { noise } from '@chriscourses/perlin-noise'
+import { sort } from 'mathjs';
 
 class OnlyOneConnectingPointError extends Error { }
 class IsEnclaveError extends Error { }
@@ -46,28 +47,36 @@ class MapTile {
 }
 
 
-class GameBoardComponent extends React.Component {
-    constructor({map, lines=false, circles=false}) {
-        super({map: map, lines: lines, circles: circles})
-    }
-
+export class GameBoardComponent extends React.Component {
     render() {
         return (
-            <svg width={this.props.map.width} height={this.props.map.height}>
-                {this.props.map.mapTiles.map((v) => v.toPath())}
-                {this.props.lines? this.props.map.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />): []}
-                {this.props.circles? this.props.map.circles: []}
+            <svg width={this.props.G.width} height={this.props.G.height}>
+                {this.props.G.mapTiles.map((v) => this.toPath(v))}
+                {/* {this.props.lines? this.props.map.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />): []} */}
+                {/* {this.props.circles? this.props.map.circles: []} */}
             </svg>
 
         )
+    }
+
+    toPath(tile) {
+        return (
+            <>
+                <path id={tile.id} key={tile.id} clipPath={"url(#c" + tile.id + ")"} fill={tile.data.color} d={tile.polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"} />
+                <clipPath id={"c" + tile.id}>
+                    <use xlinkHref={"#" + tile.id} />
+                </clipPath>
+            </>)
     }
 }
 
 
 export class GameBoard extends React.Component {
-    constructor(props) {
-        super(props)
+    constructor({height=window.innerHeight, width=window.innerWidth, circles=false, lines=false, numPoints=1000}) {
+        super({height, width, numPoints})
 
+        this.makeCircles = circles
+        this.makeLines = lines
         this.height = window.innerHeight
         this.width = window.innerWidth
         this.circles = []
@@ -75,7 +84,7 @@ export class GameBoard extends React.Component {
         this.connectLines = []
         this.neighborMap = new Map()
 
-        this.points = Array(3000).fill(0).map(() =>
+        this.points = Array(this.props.numPoints).fill(0).map(() =>
             [Math.floor(Math.random() * this.width),
             Math.floor(Math.random() * this.height)])
 
@@ -229,6 +238,7 @@ export class GameBoard extends React.Component {
             }
         }
         validOnePolyTiles = validOnePolyTiles.filter((v) => !dontFit.includes(v))
+        validOnePolyTiles.sort((a,b) => b-a)
 
         // for (var key of validOnePolyTiles) {
         //     if (this.mapTiles[key].points.length === 1) {
@@ -241,15 +251,35 @@ export class GameBoard extends React.Component {
         for (let removeTile of validOnePolyTiles) {
             this.mapTiles[removeTile] = NULL_TILE
         }
-    }
+        
+        for (let removeTile of validOnePolyTiles) {
+            this.mapTiles.splice(removeTile, 1)
+        }
 
+        assert(this.mapTiles.filter((v) => v !== NULL_TILE).length, this.mapTiles.length)
+
+        for (let removeTile of validOnePolyTiles) {
+            let keys = [...this.neighborMap.keys()]
+            keys.sort((a,b) => a - b)
+
+            for (let key of keys) {
+                if (key > removeTile) {
+                    this.neighborMap.set(key - 1, stepDown(this.neighborMap.get(key), removeTile))
+                    this.neighborMap.delete(key)
+
+                } else if (key < removeTile) {
+                    this.neighborMap.set(key, stepDown(this.neighborMap.get(key), removeTile))
+                }
+            }
+        }
+    }
 
     render() {
         return (
             <svg width={this.width} height={this.height} onClick={this.handleClick}>
                 {this.mapTiles.map((v) => v.toPath())}
-                {this.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />)}
-                {this.circles}
+                {this.makeLines? this.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />) : []}
+                {this.makeCircles? this.circles: []}
             </svg>
         )
     }
@@ -289,7 +319,6 @@ function perimeter(poly) {
 
 function combine(poly1, poly2) {
     if (poly1.slice().filter((v) => { return contains(poly2, v) }).length < 2) {
-        console.log(poly1.slice().filter((v) => { return contains(poly2, v) }), poly1, poly2)
         throw new OnlyOneConnectingPointError()
     }
     try {
