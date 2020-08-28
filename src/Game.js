@@ -7,7 +7,7 @@ import { noise } from '@chriscourses/perlin-noise'
 
 export const TicTacToe = {
     setup: () => {
-        var [width, height] = [1200, 800]
+        var [width, height] = [1200, 700]
         var [mapTiles, neighborMap] = createGameBoard(1000, height, width)
         return { mapTiles, neighborMap: mapToObject(neighborMap), width, height }
     },
@@ -150,7 +150,7 @@ function createGameBoard(numPoints, height, width) {
             points: polygonIndexes.map((v) => points[v]),
             cellsIndex: polygonIndexes,
             touchCellsIndex: [...new Set(polygonIndexes.map((v) => [...voronoi.neighbors(v)]).flat().filter((v) => !(polygonIndexes.includes(v))))],
-            data:{ isOcean: !isLand, color:(!isLand ? "blue" : "green") },
+            data:{ isOcean: !isLand, color:(!isLand ? "blue" : "green"), center: getMiddlestPoint(polygonIndexes.map((v) => points[v])) },
             id: polygonsIndex.length})
     }
     var smallNeighborMap = new Map()
@@ -287,4 +287,13 @@ function contains(arr, value) {
 
 function stepDown(nums, stepAt) {
     return nums.filter((v) => v !== stepAt).map((v) => v > stepAt ? --v : v)
+}
+
+function getMiddlestPoint(points) {
+    points = [...points]
+    let averageX = points.map((v) => v[0]).reduce((p, v) => p + v) / points.length
+    let averageY = points.map((v) => v[1]).reduce((p, v) => p + v) / points.length
+
+    points.sort((a, b) => (Math.abs(a[0] - averageX) - Math.abs(b[0] - averageX)) + (Math.abs(a[1] - averageY) - Math.abs(b[1] - averageY)))
+    return points[0]
 }
