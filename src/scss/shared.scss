@@ -1,0 +1,137 @@
+@import url("https://fonts.googleapis.com/css2?family=Farro:wght@300;400;500;700&display=swap");
+
+// $bg-color: #3895ff;
+$bg-color: #def2f1;
+$text-color-accent: #17252a;
+$text-color: #535353;
+$muted-color: #7a7a7a;
+
+$main-accent: #3aafa9;
+$dark-accent: #2b7a78;
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    font-family: "Farro", sans-serif;
+}
+
+body {
+    margin: 0;
+    background-color: #efefef;
+    color: $text-color;
+    background-color: $bg-color;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    color: $main-accent;
+    text-decoration: none;
+    transition: 0.3s;
+
+    &:hover {
+        color: $dark-accent;
+    }
+}
+
+svg {
+    overflow: hidden;
+    position: absolute;
+}
+
+path {
+    stroke: black;
+    stroke-width: 2px;
+
+    &:hover {
+        stroke-width: 6px;
+    }
+}
+
+ellipse {
+    stroke-width: 2px;
+    stroke: black;
+    fill-opacity: 0;
+}
+
+line {
+    stroke: yellow;
+    stroke-width: 2px;
+}
+
+.btn {
+    line-height: initial;
+    display: inline-block;
+    padding: 16px 35px;
+    text-shadow: none;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    color: $text-color;
+    transition: 0.3s;
+
+    border-radius: 100px;
+    cursor: pointer;
+
+    &:hover {
+        color: $text-color;
+        text-decoration: none;
+    }
+}
+
+.btn-container {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+}
+
+.btn-primary {
+    outline: none;
+    position: relative;
+    background-color: rgba($main-accent, 0.4);
+
+    &:hover {
+        &::before {
+            height: 100%;
+            transform: scaleX(1);
+        }
+    }
+
+    &::before {
+        content: "";
+        transition: 0.3s;
+        position: absolute;
+        z-index: -1;
+        left: 0;
+        bottom: 0;
+        height: 5%;
+        width: 100%;
+        border-radius: 100px;
+        background-color: $main-accent;
+        transform: scaleX(0.75);
+    }
+}
+
+.title {
+    text-align: center;
+    font-size: 400%;
+    margin-bottom: 0;
+    color: $text-color-accent;
+}
+
+.row {
+    display: flex;
+    flex-flow: row wrap;
+    margin-bottom: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.col {
+    padding: 1rem;
+}
+
+.row.flex-center {
+    justify-content: center;
+}

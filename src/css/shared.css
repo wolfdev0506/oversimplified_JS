@@ -1,0 +1,137 @@
+@import url("https://fonts.googleapis.com/css2?family=Farro:wght@300;400;500;700&display=swap");
+*,
+*::before,
+*::after {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  font-family: "Farro", sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #efefef;
+  color: #535353;
+  background-color: #def2f1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: #3aafa9;
+  text-decoration: none;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+a:hover {
+  color: #2b7a78;
+}
+
+svg {
+  overflow: hidden;
+  position: absolute;
+}
+
+path {
+  stroke: black;
+  stroke-width: 2px;
+}
+
+path:hover {
+  stroke-width: 6px;
+}
+
+ellipse {
+  stroke-width: 2px;
+  stroke: black;
+  fill-opacity: 0;
+}
+
+line {
+  stroke: yellow;
+  stroke-width: 2px;
+}
+
+.btn {
+  line-height: initial;
+  display: inline-block;
+  padding: 16px 35px;
+  text-shadow: none;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  color: #535353;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  color: #535353;
+  text-decoration: none;
+}
+
+.btn-container {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+.btn-primary {
+  outline: none;
+  position: relative;
+  background-color: rgba(58, 175, 169, 0.4);
+}
+
+.btn-primary:hover::before {
+  height: 100%;
+  -webkit-transform: scaleX(1);
+          transform: scaleX(1);
+}
+
+.btn-primary::before {
+  content: "";
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  bottom: 0;
+  height: 5%;
+  width: 100%;
+  border-radius: 100px;
+  background-color: #3aafa9;
+  -webkit-transform: scaleX(0.75);
+          transform: scaleX(0.75);
+}
+
+.title {
+  text-align: center;
+  font-size: 400%;
+  margin-bottom: 0;
+  color: #17252a;
+}
+
+.row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row wrap;
+          flex-flow: row wrap;
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.col {
+  padding: 1rem;
+}
+
+.row.flex-center {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
