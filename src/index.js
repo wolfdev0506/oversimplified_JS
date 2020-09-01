@@ -11,14 +11,12 @@ const serverURL = "http://localhost:3000"
 const Website = () => (
     <Router>
         <Switch>
-            <Route exact path="/">
-                <HomePage/>
-            </Route>
-            <Route exact path="/help">
-                <HelpPage/>
-            </Route>
-            <Route exact path="/game">
-                <App/>
+            <Route exact path="/" component={HomePage}/>
+            <Route exact path="/help" component={HelpPage}/>
+            <Route exact path="/sandbox" component="lmao"/>
+            <Route exact path="/game" component={App}/>
+            <Route path="*">
+                <Redirect to="/"/>
             </Route>
         </Switch>
     </Router>
