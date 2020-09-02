@@ -25,9 +25,12 @@ export class OversimplifiedBoard extends React.Component {
                     </svg>
                 </div>
                 <div className="col right-col">
-                    <svg viewBox={this.getBoundingBox(activeI)}>
+                    <svg viewBox={this.getBoundingBox(activeI)} id="focusBox">
                         {this.toPath(this.props.G.mapTiles[activeI], activeI, "focus")}
                     </svg>
+                    <div>
+                        
+                    </div>
                 </div>
 
             </div>
