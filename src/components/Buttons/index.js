@@ -16,3 +16,11 @@ export const HelpButton = () => (
       </Link>
     </div>
 );
+
+export const HomeButton = () => (
+  <div className="col btn-container">
+    <Link to="/" className="btn btn-primary">
+      Back to Home
+    </Link>
+  </div>
+);

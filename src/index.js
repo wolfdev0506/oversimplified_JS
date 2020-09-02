@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-dom";
 import HomePage from './components/HomePage'
 import HelpPage from './components/HelpPage'
+import SandboxPage from './components/SandboxPage';
 
 const serverURL = "http://localhost:3000"
 
@@ -13,8 +13,8 @@ const Website = () => (
         <Switch>
             <Route exact path="/" component={HomePage}/>
             <Route exact path="/help" component={HelpPage}/>
-            <Route exact path="/sandbox" component="lmao"/>
-            <Route exact path="/game" component={App}/>
+            <Route exact path="/sandbox" component={SandboxPage}/>
+            <Route exact path="/game" component={SandboxPage}/>
             <Route path="*">
                 <Redirect to="/"/>
             </Route>

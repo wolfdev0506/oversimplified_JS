@@ -28,7 +28,7 @@ const HomePage = (props) => (
             Created by Max Gordon and Akiva Dienstfrey
           </p>
           <p>
-            Explore the project on <a href="https://github.com/JohnnyWobble/oversimplified" target="_blank" rel="noopener noreferrer" style={{ "font-weight": "600" }}> Github</a>
+            Explore the project on <a href="https://github.com/JohnnyWobble/oversimplified" target="_blank" rel="noopener noreferrer" style={{ "fontWeight": "600" }}> Github</a>
           </p>
         </div>
       </div>

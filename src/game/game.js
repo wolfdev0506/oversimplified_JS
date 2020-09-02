@@ -5,10 +5,10 @@ import { polygon, union } from "@turf/turf"
 import { noise } from '@chriscourses/perlin-noise'
 
 
-export const TicTacToe = {
+export const Oversimplified = {
     setup: () => {
         var [width, height] = [1200, 700]
-        var [mapTiles, neighborMap] = createGameBoard(1000, height, width)
+        var [mapTiles, neighborMap] = createGameBoard(100, height, width)
         return { mapTiles, neighborMap: mapToObject(neighborMap), width, height }
     },
 
@@ -19,10 +19,13 @@ export const TicTacToe = {
         attackTile: (G, ctx, fromId, toId, troops) => {
 
         },
-        build: (G, ctx, locationId, buildingType) => {
+        buildBuilding: (G, ctx, locationId, buildingType) => {
 
         },
         makeTroops: (G, ctx, location, building, troopType) => {
+
+        },
+        trade: (G, ctx, withPlayer, give, receive) => {
 
         }
     },
@@ -79,7 +82,7 @@ function createGameBoard(numPoints, height, width) {
 
     var voronoi = Delaunay.from(points).voronoi([0, 0, width, height])
 
-    var polygons = [...voronoi.cellPolygons()]
+    var polygons = [...voronoi.cellPolygons()].map((poly) => (poly.map((point) => point.map(Math.floor))))
     var polygonsIndex = polygons.map((v, i) => i)
     var touching = []
     var mapTiles = []
@@ -236,7 +239,7 @@ function getPerimeterFromPolys(poly1, poly2) {
 
 function assertNot(val1, val2) {
     if (JSON.stringify(val1) === JSON.stringify(val2)) {
-        throw AssertionError(val1 + " == " + val2)
+        throw new AssertionError(val1 + " == " + val2)
     } else {
         return val1
     }
