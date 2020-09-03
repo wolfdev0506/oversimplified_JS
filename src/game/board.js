@@ -1,6 +1,11 @@
 import React from 'react'
 
 
+function FieldContent({field, content}) {
+    return <h3><span className="bold">{field + ":"}</span>{" " + content}</h3>
+}
+
+
 export class OversimplifiedBoard extends React.Component {
     constructor(props) {
         super(props)
@@ -11,6 +16,7 @@ export class OversimplifiedBoard extends React.Component {
 
     render() {
         var activeI = this.state.activeTile
+        var activeTile = this.props.G.mapTiles[activeI]
 
         return (
             <div className="game">
@@ -26,10 +32,11 @@ export class OversimplifiedBoard extends React.Component {
                 </div>
                 <div className="col right-col">
                     <svg viewBox={this.getBoundingBox(activeI)} id="focusBox">
-                        {this.toPath(this.props.G.mapTiles[activeI], activeI, "focus")}
+                        {this.toPath(activeTile, activeI, "focus")}
                     </svg>
-                    <div>
-                        
+                    <div className="text-box">
+                        <FieldContent field="Name" content={activeTile.data.name}/>
+                        <FieldContent field="Empire" content={activeTile.data.region}/>
                     </div>
                 </div>
 

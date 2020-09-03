@@ -5,6 +5,7 @@ import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-d
 import HomePage from './components/HomePage'
 import HelpPage from './components/HelpPage'
 import SandboxPage from './components/SandboxPage';
+import JoinPage from './components/JoinPage'
 
 const serverURL = "http://localhost:3000"
 
@@ -14,7 +15,9 @@ const Website = () => (
             <Route exact path="/" component={HomePage}/>
             <Route exact path="/help" component={HelpPage}/>
             <Route exact path="/sandbox" component={SandboxPage}/>
-            <Route exact path="/game" component={SandboxPage}/>
+            <Route exact path="/join/:matchID/:player"> 
+                <JoinPage serverURL={serverURL} />
+            </Route>
             <Route path="*">
                 <Redirect to="/"/>
             </Route>

@@ -50,6 +50,7 @@ a {
 path {
     stroke: black;
     stroke-width: 2px;
+    cursor: pointer;
 
     &:hover {
         stroke-width: 6px;
@@ -186,4 +187,20 @@ line {
 .game {
     width: 100%;
     display: flex;
+}
+
+.text-box {
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 5px;
+
+    h3 {
+        font-weight: 500;
+        margin: 8px 0;
+    }
+}
+
+.bold {
+    font-weight: 600;
+    color: $text-color-accent;
 }
