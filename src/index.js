@@ -7,7 +7,8 @@ import HelpPage from './components/HelpPage'
 import SandboxPage from './components/SandboxPage';
 // import JoinPage from './components/JoinPage'
 
-const serverURL = "http://localhost:3000"
+// const serverURL = "http://localhost:3000"
+const serverURL = "https://oversimplified.herokuapp.com/"
 
 const Website = () => (
     <Router>
