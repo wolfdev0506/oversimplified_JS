@@ -2,9 +2,16 @@
 *,
 *::before,
 *::after {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   font-family: "Farro", sans-serif;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
 }
 
 body {
@@ -14,6 +21,12 @@ body {
   background-color: #def2f1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+svg {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid black;
 }
 
 a {
@@ -27,14 +40,10 @@ a:hover {
   color: #2b7a78;
 }
 
-svg {
-  overflow: hidden;
-  position: absolute;
-}
-
 path {
   stroke: black;
   stroke-width: 2px;
+  cursor: pointer;
 }
 
 path:hover {
@@ -52,6 +61,16 @@ line {
   stroke-width: 2px;
 }
 
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+#focusBox {
+  height: 30%;
+  padding: 5px;
+}
+
 .btn {
   line-height: initial;
   display: inline-block;
@@ -61,8 +80,6 @@ line {
   text-decoration: none;
   border: none;
   color: #535353;
-  -webkit-transition: 0.3s;
-  transition: 0.3s;
   border-radius: 100px;
   cursor: pointer;
 }
@@ -92,8 +109,6 @@ line {
 
 .btn-primary::before {
   content: "";
-  -webkit-transition: 0.3s;
-  transition: 0.3s;
   position: absolute;
   z-index: -1;
   left: 0;
@@ -128,10 +143,80 @@ line {
 
 .col {
   padding: 1rem;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
 }
 
-.row.flex-center {
+.center {
+  margin: 0 auto;
+}
+
+.flex-center {
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+}
+
+.bgio-client {
+  display: contents;
+}
+
+.vert-col {
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.center-col {
+  width: 60%;
+}
+
+.right-col {
+  float: right;
+  width: 20%;
+}
+
+.left-col {
+  float: left;
+  width: 20%;
+}
+
+.game {
+  width: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.text-box {
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.text-box h3 {
+  font-weight: 500;
+  margin: 8px 0;
+}
+
+.bold {
+  font-weight: 600;
+  color: #17252a;
 }
