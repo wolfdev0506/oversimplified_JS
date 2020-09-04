@@ -11,6 +11,7 @@
     "@turf/turf": "^5.1.6",
     "boardgame.io": "^0.39.16",
     "d3-delaunay": "^5.3.0",
+    "koa-static": "^5.0.0",
     "manhattan-voronoi": "git+https://github.com/mlknz/manhattan-voronoi.git#fix_points_nudge",
     "mathjs": "^7.1.0",
     "react": "^16.13.1",
