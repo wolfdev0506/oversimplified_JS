@@ -23,9 +23,9 @@ const Website = () => (
             <Route exact path='/lobby'>
                 <LobbyPage serverURL={serverURL}/>
             </Route>
-            <Route path="*">
+            {/* <Route path="*">
                 <Redirect to="/"/>
-            </Route>
+            </Route> */}
         </Switch>
     </Router>
 )
