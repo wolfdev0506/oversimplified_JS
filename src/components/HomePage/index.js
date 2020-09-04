@@ -23,6 +23,13 @@ const HomePage = (props) => (
       </div>
 
       <div className="row flex-center">
+        <Buttons.LobbyButton />
+        <div className="col">
+          <p>Join an existing game!</p>
+        </div>
+      </div>
+
+      <div className="row flex-center">
         <div className="col" style={{ textAlign: "center" }}>
           <p>
             Created by Max Gordon and Akiva Dienstfrey

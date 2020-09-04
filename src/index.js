@@ -5,10 +5,11 @@ import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-d
 import HomePage from './components/HomePage'
 import HelpPage from './components/HelpPage'
 import SandboxPage from './components/SandboxPage';
+import LobbyPage from './components/LobbyPage'
 // import JoinPage from './components/JoinPage'
 
 // const serverURL = "http://localhost:3000"
-const serverURL = "https://oversimplified.herokuapp.com/"
+const serverURL = "oversimplified.herokuapp.com"
 
 const Website = () => (
     <Router>
@@ -19,6 +20,9 @@ const Website = () => (
             {/* <Route exact path="/join/:matchID/:player"> 
                 <JoinPage serverURL={serverURL} />
             </Route> */}
+            <Route exact path='/lobby'>
+                <LobbyPage serverURL={serverURL}/>
+            </Route>
             <Route path="*">
                 <Redirect to="/"/>
             </Route>

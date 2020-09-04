@@ -21,6 +21,6 @@ import {Oversimplified} from "./game/game"
 
 
 const server = Server({ games: [Oversimplified] });
-const PORT = process.env.PORT || 8000;
+const PORT = parseInt(process.env.PORT) || 8000;
 
 server.run(PORT);

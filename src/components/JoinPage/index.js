@@ -18,3 +18,8 @@ const App = Client({
     // Set to false to disable the Debug UI.
     debug: false
   });
+
+const JoinPage = ({serverURL}) => {
+}
+
+export default JoinPage
