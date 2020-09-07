@@ -2,7 +2,7 @@ import React from "react"
 import * as Buttons from '../Buttons/'
 import '../../css/shared.css'
 
-const HomePage = (props) => (
+export const HomePage = (props) => (
   <div className="row flex-center">
     <div>
       <h1 className="title">Oversimplified</h1>
@@ -42,5 +42,3 @@ const HomePage = (props) => (
     </div>
   </div>
 );
-
-export default HomePage;

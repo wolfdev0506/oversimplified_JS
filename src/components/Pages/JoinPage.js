@@ -19,7 +19,5 @@ const App = Client({
     debug: false
   });
 
-const JoinPage = ({serverURL}) => {
+export const JoinPage = ({serverURL}) => {
 }
-
-export default JoinPage

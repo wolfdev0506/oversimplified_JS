@@ -2,11 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
 import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-dom";
-import HomePage from './components/HomePage'
-import HelpPage from './components/HelpPage'
-import SandboxPage from './components/SandboxPage';
-import LobbyPage from './components/LobbyPage'
-// import JoinPage from './components/JoinPage'
+import Pages from './components/Pages'
 
 // const serverURL = "http://localhost:3000"
 const serverURL = "oversimplified.herokuapp.com"
@@ -14,14 +10,14 @@ const serverURL = "oversimplified.herokuapp.com"
 const Website = () => (
     <Router>
         <Switch>
-            <Route exact path="/" component={HomePage}/>
-            <Route exact path="/help" component={HelpPage}/>
-            <Route exact path="/sandbox" component={SandboxPage}/>
+            <Route exact path="/" component={Pages.HomePage}/>
+            <Route exact path="/help" component={Pages.HelpPage}/>
+            <Route exact path="/sandbox" component={Pages.SandboxPage}/>
             {/* <Route exact path="/join/:matchID/:player"> 
                 <JoinPage serverURL={serverURL} />
             </Route> */}
             <Route exact path='/lobby'>
-                <LobbyPage serverURL={serverURL}/>
+                <Pages.LobbyPage serverURL={serverURL}/>
             </Route>
             {/* <Route path="*">
                 <Redirect to="/"/>

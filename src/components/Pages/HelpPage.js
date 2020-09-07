@@ -1,6 +1,6 @@
 import React from "react";
 
-const HelpPage = (props) => (
+export const HelpPage = (props) => (
   <div className="row flex-center">
     <div className="col no-padding">
       <div style={{ textAlign: "center" }}>
@@ -9,5 +9,3 @@ const HelpPage = (props) => (
     </div>
   </div>
 );
-
-export default HelpPage;
