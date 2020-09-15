@@ -12,7 +12,7 @@ const SandboxClient = Client({
     debug: false
 });
 
-const SandboxPage = () => (
+export const SandboxPage = () => (
     <div className="vert-col">
         <SandboxClient />
         <Buttons.HelpButton />
@@ -20,5 +20,3 @@ const SandboxPage = () => (
         <Prompt message="Are you sure you want to leave?" />
     </div>
 )
-
-export default SandboxPage;

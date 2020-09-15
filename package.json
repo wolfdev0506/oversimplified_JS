@@ -1,7 +1,6 @@
 {
   "name": "oversimplified",
   "version": "0.1.0",
-  "homepage": "https://johnnywobble.github.io/oversimplified",
   "private": true,
   "dependencies": {
     "@chriscourses/perlin-noise": "^1.0.5",
@@ -11,12 +10,15 @@
     "@turf/turf": "^5.1.6",
     "boardgame.io": "^0.39.16",
     "d3-delaunay": "^5.3.0",
+    "esm": "^3.2.25",
+    "koa-static": "^5.0.0",
     "manhattan-voronoi": "git+https://github.com/mlknz/manhattan-voronoi.git#fix_points_nudge",
     "mathjs": "^7.1.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^3.4.3"
+    "react-scripts": "^3.4.3",
+    "universal-cookie": "^4.0.3"
   },
   "scripts": {
     "start": "node -r esm server.js",

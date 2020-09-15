@@ -1,0 +1,91 @@
+import React from 'react'
+import * as Buttons from '../Buttons/'
+import {API} from '../../game/api'
+
+const InputBox = ({ value, onChange }) => (
+    <form>
+        <label>Game Server:</label>
+        <input type="text" placeholder="Web Address" onChange={onChange} value={value} />
+    </form>
+)
+
+const MatchList = ({matches}) => (
+    <ul className="series outline">
+        <li className="bold game-list-item" id="header">
+            <h3>ID</h3>
+            <h3>Players</h3>
+            <h3>Status</h3>
+            <h3>Action</h3>
+        </li>
+        {matches.map(match => <Match data={match}/>)}
+    </ul>
+)
+
+const Match = ({data}) => (
+    <li className="game-list-item">
+        <p>{data.gameID}</p>
+        <p>{getPlayerNums(data.players)[0]}</p>
+        <p>{getPlayerNums(data.players)[1]? "Full" : "Open"}</p>
+        {getPlayerNums(data.players)[1]? 
+            <span/>
+            :
+            <div className="btn-container">
+                <a className="join-btn btn-primary" href={`/match/${data.gameID}`}>Join</a>
+            </div>
+        }
+    </li>
+)
+
+function getPlayerNums(players) {
+    let numPlayers = 0
+    for (let player of players) {
+        if (player.name) numPlayers++
+    }
+    return [`${numPlayers}/${players.length}`, numPlayers === players.length? "Full":null]
+}
+
+export class LobbyPage extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            server: props.serverURL,
+            matches: []
+        }
+        this.gamesUpdater = setTimeout(() => this.updateGames(), 1000)
+        this.handleInputChange = this.handleInputChange.bind(this)
+        this.updateGame = this.updateGames.bind(this)
+    }
+
+    handleInputChange(event) {
+        clearTimeout(this.gamesUpdater)
+
+        this.setState({server:event.target.value})
+
+        this.gamesUpdater = setTimeout(() => this.updateGames(), 1000)
+    }
+
+    updateGames() {
+        const lobbyAPI = new API(this.state.server)
+        lobbyAPI.listMatches()
+            .then(({rooms}) => this.setState({"matches": rooms}))
+            .then(() => this.gamesUpdater = setTimeout(() => this.updateGames(), 1000))
+            .catch(reason => {console.error(reason); this.setState({matches: false})})
+    }
+
+    render() {
+        return (
+            <div className="row flex-center">
+                <div className="vert-col">
+                    <h1 className="title">Game Lobby</h1>
+                    <div className="row btn-container">
+                        <InputBox value={this.state.server} onChange={this.handleInputChange} />
+                        <a className="btn btn-primary" href="/create" id="createButton">Create Game</a>
+                    </div>
+                    {this.state.matches === false? "Error reaching game server" : <MatchList matches={this.state.matches} />}
+                    <Buttons.HelpButton />
+                    <Buttons.HomeButton />
+                </div>
+            </div>
+        )
+    }
+}
