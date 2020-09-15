@@ -9,7 +9,8 @@
   font-family: "Farro", sans-serif;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   width: 100%;
 }
@@ -32,8 +33,6 @@ svg {
 a {
   color: #3aafa9;
   text-decoration: none;
-  -webkit-transition: 0.3s;
-  transition: 0.3s;
 }
 
 a:hover {
@@ -61,6 +60,52 @@ line {
   stroke-width: 2px;
 }
 
+form {
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin: 20px 0;
+}
+
+label {
+  font-size: 20px;
+  height: -webkit-min-content;
+  height: -moz-min-content;
+  height: min-content;
+  margin: auto 10px;
+}
+
+input {
+  background-color: transparent;
+  border-color: transparent;
+  font-size: 20px;
+  color: #535353;
+  padding: 5px;
+  border: 2px solid rgba(58, 175, 169, 0.4);
+  border-radius: 10px;
+}
+
+input:focus {
+  border-color: #3aafa9;
+  outline: none;
+}
+
+ul.series {
+  list-style: none;
+  padding: 10px;
+}
+
+ul.series li:nth-child(2n) {
+  background-color: rgba(58, 175, 169, 0.2);
+}
+
+li p, li h3 {
+  margin: 4px 0;
+}
+
 #root {
   height: 100%;
   width: 100%;
@@ -71,7 +116,44 @@ line {
   padding: 5px;
 }
 
-.btn {
+#createButton {
+  height: -webkit-min-content;
+  height: -moz-min-content;
+  height: min-content;
+  margin: auto 0 auto 20px;
+}
+
+#cookieAlert:not(.hidden) {
+  z-index: 1000;
+  width: 365px;
+  right: 40px;
+  bottom: 40px;
+  background-color: white;
+  -webkit-box-shadow: 3px 3px 10px;
+          box-shadow: 3px 3px 10px;
+  border-radius: 20px;
+  display: block;
+  -ms-flex-pack: distribute;
+      justify-content: space-around;
+}
+
+#cookieAlert:not(.hidden) p {
+  text-align: center;
+}
+
+#cookieAlert:not(.hidden) .btn-container {
+  margin: auto;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  display: block;
+}
+
+#cookieAlert:not(.hidden) button {
+  font-size: 16px;
+}
+
+.btn, .join-btn {
   line-height: initial;
   display: inline-block;
   padding: 16px 35px;
@@ -84,9 +166,14 @@ line {
   cursor: pointer;
 }
 
-.btn:hover {
+.btn:hover, .join-btn:hover {
   color: #535353;
   text-decoration: none;
+}
+
+.join-btn {
+  padding: 8px 18px;
+  width: 100px;
 }
 
 .btn-container {
@@ -113,7 +200,7 @@ line {
   z-index: -1;
   left: 0;
   bottom: 0;
-  height: 5%;
+  height: 0;
   width: 100%;
   border-radius: 100px;
   background-color: #3aafa9;
@@ -205,9 +292,12 @@ line {
   display: flex;
 }
 
-.text-box {
-  border: 1px solid black;
+.outline, .text-box {
+  border: 1px solid #17252a;
   border-radius: 10px;
+}
+
+.text-box {
   padding: 5px;
 }
 
@@ -219,4 +309,104 @@ line {
 .bold {
   font-weight: 600;
   color: #17252a;
+}
+
+.game-list-item {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 1fr 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+  -webkit-column-gap: 20px;
+          column-gap: 20px;
+  border-radius: 5px;
+  padding: 0 10px;
+  height: 45px;
+}
+
+.game-list-item:hover:not(#header) {
+  background-color: rgba(58, 175, 169, 0.4) !important;
+}
+
+.game-list-item * {
+  margin: auto 0;
+}
+
+.loader {
+  height: 106px;
+  width: 106px;
+  border: 3px solid transparent;
+  border-bottom-color: #3aafa9;
+  border-radius: 100%;
+  margin: auto;
+  position: relative;
+  -webkit-animation: rotate100 infinite linear 1.5s;
+          animation: rotate100 infinite linear 1.5s;
+}
+
+.loader::before {
+  content: "";
+  position: absolute;
+  display: inline-block;
+  margin: 5px;
+  height: 90px;
+  width: 90px;
+  border: 3px solid transparent;
+  border-bottom-color: #2b7a78;
+  border-radius: 100%;
+  -webkit-animation: rotate100 infinite linear 2.25s;
+          animation: rotate100 infinite linear 2.25s;
+}
+
+.loader::after {
+  content: "";
+  position: absolute;
+  display: inline-block;
+  top: 0px;
+  margin: 13px;
+  height: 74px;
+  width: 74px;
+  border: 3px solid transparent;
+  border-bottom-color: #17252a;
+  border-radius: 100%;
+  -webkit-animation: rotate100 infinite linear 1.5s;
+          animation: rotate100 infinite linear 1.5s;
+}
+
+@-webkit-keyframes rotate100 {
+  from {
+    -webkit-transform: rotate(0deg);
+            transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg);
+  }
+}
+
+@keyframes rotate100 {
+  from {
+    -webkit-transform: rotate(0deg);
+            transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg);
+  }
+}
+
+.height100 {
+  height: 100%;
+}
+
+.top-space {
+  position: relative;
+  top: 25%;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.hidden {
+  display: none;
 }

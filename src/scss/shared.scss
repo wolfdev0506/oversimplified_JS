@@ -8,6 +8,7 @@ $muted-color: #7a7a7a;
 
 $main-accent: #3aafa9;
 $dark-accent: #2b7a78;
+$black-accent: #17252a;
 
 *,
 *::before,
@@ -17,7 +18,8 @@ $dark-accent: #2b7a78;
     font-family: "Farro", sans-serif;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     width: 100%;
 }
@@ -34,13 +36,12 @@ body {
 svg {
     width: 100%;
     border-radius: 10px;
-    border: 1px solid black  
+    border: 1px solid black;
 }
 
 a {
     color: $main-accent;
     text-decoration: none;
-    transition: 0.3s;
 
     &:hover {
         color: $dark-accent;
@@ -68,6 +69,46 @@ line {
     stroke-width: 2px;
 }
 
+form {
+    justify-content: center;
+    display: flex;
+    margin: 20px 0;
+}
+
+label {
+    font-size: 20px;
+    height: min-content;
+    margin: auto 10px;
+}
+
+input {
+    background-color: transparent;
+    border-color: transparent;
+    font-size: 20px;
+    color: $text-color;
+    padding: 5px;
+    border: 2px solid rgba($main-accent, 0.4);
+    border-radius: 10px;
+
+    &:focus {
+        border-color: $main-accent;
+        outline: none;
+    }
+}
+
+ul.series {
+    list-style: none;
+    padding: 10px;
+
+    li:nth-child(2n) {
+        background-color: rgba($main-accent, 0.2)
+    }
+}
+
+li p, li h3 {
+    margin: 4px 0;
+}
+
 #root {
     height: 100%;
     width: 100%;
@@ -76,6 +117,37 @@ line {
 #focusBox {
     height: 30%;
     padding: 5px;
+}
+
+#createButton {
+    height: min-content;
+    margin: auto 0 auto 20px;
+}
+
+#cookieAlert:not(.hidden) {
+    z-index: 1000;
+    width: 365px;
+    right: 40px;
+    bottom: 40px;
+    background-color: white;
+    box-shadow: 3px 3px 10px;
+    border-radius: 20px;
+    display: block;
+    justify-content: space-around;
+
+    p {
+        text-align: center;
+    }
+
+    .btn-container {
+        margin: auto;
+        width: max-content;
+        display: block;
+    }
+
+    button {
+        font-size: 16px;
+    }
 }
 
 .btn {
@@ -95,6 +167,12 @@ line {
         color: $text-color;
         text-decoration: none;
     }
+}
+
+.join-btn {
+    @extend .btn;
+    padding: 8px 18px;
+    width: 100px;
 }
 
 .btn-container {
@@ -121,7 +199,7 @@ line {
         z-index: -1;
         left: 0;
         bottom: 0;
-        height: 5%;
+        height: 0;
         width: 100%;
         border-radius: 100px;
         background-color: $main-accent;
@@ -181,7 +259,7 @@ line {
 
 .left-col {
     float: left;
-    width: 20%
+    width: 20%;
 }
 
 .game {
@@ -189,9 +267,13 @@ line {
     display: flex;
 }
 
-.text-box {
-    border: 1px solid black;
+.outline {
+    border: 1px solid $black-accent;
     border-radius: 10px;
+}
+
+.text-box {
+    @extend .outline;
     padding: 5px;
 
     h3 {
@@ -203,4 +285,84 @@ line {
 .bold {
     font-weight: 600;
     color: $text-color-accent;
+}
+
+.game-list-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    column-gap: 20px;
+    border-radius: 5px;
+    padding: 0 10px;
+    height: 45px;
+
+    &:hover:not(#header) {
+        background-color: rgba($main-accent, 0.4) !important;
+    }
+
+    * {
+        margin: auto 0;
+    }
+}
+
+.loader {
+    height: 106px;
+    width: 106px;
+    border: 3px solid transparent;
+    border-bottom-color: $main-accent;
+    border-radius: 100%;
+    margin: auto;
+    position: relative;
+    animation: rotate100 infinite linear 1.5s;
+
+    &::before {
+        content: "";
+        position: absolute;
+        display: inline-block;
+        margin: 5px;
+        height: 90px;
+        width: 90px;
+        border: 3px solid transparent;
+        border-bottom-color: $dark-accent;
+        border-radius: 100%;
+        animation: rotate100 infinite linear 2.25s;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        display: inline-block;
+        top: 0px;
+        margin: 13px;
+        height: 74px;
+        width: 74px;
+        border: 3px solid transparent;
+        border-bottom-color: $black-accent;
+        border-radius: 100%;
+        animation: rotate100 infinite linear 1.5s;
+    }
+}
+
+@keyframes rotate100 {
+    from {
+        transform: rotate(0deg);
+    } to {
+        transform: rotate(360deg);
+    }
+}
+
+.height100 {
+    height: 100%;
+}
+
+.top-space {
+    position: relative;
+    top: 25%;
+}
+
+.fixed {
+    position: fixed;
+}
+
+.hidden {
+    display: none;
 }

@@ -25,12 +25,6 @@ export const HomeButton = (props) => (
   </div>
 );
 
-export const CreatButton = ({serverURL}) => (
-  <div className="col btn-container">
-    {/* <Link */}
-  </div>
-)
-
 export const LobbyButton = (props) => (
   <div className="col btn-container">
     <Link to="/lobby" className="btn btn-primary">

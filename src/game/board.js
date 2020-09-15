@@ -16,6 +16,7 @@ export class OversimplifiedBoard extends React.Component {
 
     render() {
         var activeI = this.state.activeTile
+        console.log(this.props.G)
         var activeTile = this.props.G.mapTiles[activeI]
 
         return (

@@ -1,5 +1,5 @@
-import {Server} from 'boardgame.io/server'
-import {Oversimplified} from "./game/game"
+import { Server } from 'boardgame.io/server'
+import { Oversimplified } from "./src/game/game"
 import path from 'path';
 import serve from 'koa-static';
 
@@ -12,10 +12,12 @@ server.app.use(serve(frontEndAppBuildPath))
 
 server.run(PORT, () => {
   server.app.use(
-    async (ctx, next) => await serve(frontEndAppBuildPath)(
-      Object.assign(ctx, { path: 'index.html' }),
-      next
-    )
+    async (ctx, next) => {
+      await serve(frontEndAppBuildPath)(
+        Object.assign(ctx, { path: 'index.html' }),
+        next
+      )
+    }
   )
 });
 

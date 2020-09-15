@@ -1,4 +1,3 @@
-
 import { INVALID_MOVE } from 'boardgame.io/core';
 import { Delaunay } from "d3-delaunay";
 import { polygon, union } from "@turf/turf"
@@ -9,10 +8,8 @@ import names from '../names.json'
 export const Oversimplified = {
     name: "Oversimplified",
 
-    setup: () => {
-        var [width, height] = [1200, 700]
-        var [mapTiles, neighborMap] = createGameBoard(100, height, width)
-        return { mapTiles, neighborMap: mapToObject(neighborMap), width, height }
+    setup: (ctx, setupData) => {
+        return setupData === undefined? generateGameBoard() : setupData
     },
 
     moves: {
@@ -73,7 +70,13 @@ function mapToObject(map) {
     return obj
 }
 
-function createGameBoard(numPoints, height, width) {
+export function generateGameBoard() {
+    var [width, height] = [1200, 700]
+    var [mapTiles, neighborMap] = createGameBoard(100, height, width)
+    return {width, height, mapTiles, neighborMap: mapToObject(neighborMap)}
+}
+
+export function createGameBoard(numPoints, height, width) {
     var mapTiles = makeAndMergeTiles(numPoints, width, height)
     var neighborMap = generateTouchMap(mapTiles)
     return merge1PolyTiles(mapTiles, neighborMap)
