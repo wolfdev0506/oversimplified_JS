@@ -3,9 +3,10 @@ import * as Buttons from '../Buttons/'
 import {API} from '../../game/api'
 
 const InputBox = ({ value, onChange }) => (
-    <form>
+    // stop the page from refreshing upon hitting Enter
+    <form onSubmit={(e) => e.preventDefault()}>
         <label>Game Server:</label>
-        <input type="text" placeholder="Web Address" onChange={onChange} value={value} />
+        <input type="text" placeholder="Web Address" onChange={onChange} value={value}/>
     </form>
 )
 

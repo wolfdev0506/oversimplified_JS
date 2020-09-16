@@ -115,7 +115,7 @@ li p, li h3 {
 }
 
 #focusBox {
-    height: 30%;
+    height: 100%;
     padding: 5px;
 }
 
@@ -263,8 +263,14 @@ li p, li h3 {
 }
 
 .game {
+    padding: 10px;
     width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: 2fr 6fr 2fr;
+    grid-template-rows: auto auto;
+    grid-gap: 10px;
+    grid-template-areas: "left center topRight"
+                         "left center right";
 }
 
 .outline {
