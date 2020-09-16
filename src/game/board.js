@@ -21,24 +21,22 @@ export class OversimplifiedBoard extends React.Component {
 
         return (
             <div className="game">
-                <div className="col left-col">
-                    DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA 
+                <div className="text-box" style={{gridArea: "left"}}>
+                    DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA DATA
                 </div>
-                <div className="col center-col">
+                <div style={{gridArea: "center"}}>
                     <svg viewBox={`0 0 ${this.props.G.width} ${this.props.G.height}`}>
                         {this.props.G.mapTiles.map((v, i) => this.toPath(v, i))}
                         {/* {this.props.lines? this.props.map.connectLines.map((v) => <line x1={v[0][0]} y1={v[0][1]} x2={v[1][0]} y2={v[1][1]} />): []} */}
                         {/* {this.props.circles? this.props.map.circles: []} */}
                     </svg>
                 </div>
-                <div className="col right-col">
-                    <svg viewBox={this.getBoundingBox(activeI)} id="focusBox">
-                        {this.toPath(activeTile, activeI, "focus")}
-                    </svg>
-                    <div className="text-box">
-                        <FieldContent field="Name" content={activeTile.data.name}/>
-                        <FieldContent field="Empire" content={activeTile.data.region}/>
-                    </div>
+                <svg viewBox={this.getBoundingBox(activeI)} id="focusBox" style={{gridArea: "topRight"}}>
+                    {this.toPath(activeTile, activeI, "focus")}
+                </svg>
+                <div className="text-box" style={{gridArea: "right"}}>
+                    <FieldContent field="Name" content={activeTile.data.name}/>
+                    <FieldContent field="Empire" content={activeTile.data.region? activeTile.data.region : "Independent"}/>
                 </div>
 
             </div>
