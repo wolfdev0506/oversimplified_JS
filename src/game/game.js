@@ -9,17 +9,25 @@ export const Oversimplified = {
     name: "Oversimplified",
 
     setup: (ctx, setupData) => {
-        return setupData === undefined? generateGameBoard() : setupData
+        // setupData = setupData === undefined? generateGameBoard() : setupData
+        // setupData.
+        if (setupData === undefined) {
+            console.log(setupData, ctx, setupData === undefined)
+            setupData = generateGameBoard()
+        } else {
+            console.log(JSON.stringify(setupData).slice(0, 100), setupData === undefined)
+        }
+        return setupData
     },
 
     moves: {
-        moveTo: (G, ctx, fromId, toId, troops) => {
+        moveTo: (G, ctx, fromID, toID, troops) => {
 
         },
-        attackTile: (G, ctx, fromId, toId, troops) => {
+        attackTile: (G, ctx, fromID, toID, troops) => {
 
         },
-        buildBuilding: (G, ctx, locationId, buildingType) => {
+        buildBuilding: (G, ctx, locationID, buildingType) => {
 
         },
         makeTroops: (G, ctx, location, building, troopType) => {
@@ -37,6 +45,8 @@ export const Oversimplified = {
     endIf: (G, ctx) => {
         return false
     },
+
+    disableUndo: true,
 };
 
 class OnlyOneConnectingPointError extends Error {
@@ -60,19 +70,28 @@ class AssertionError extends Error {
 
 function mapToObject(map) {
     var keys = [...map.keys()]
-    if (keys.length !== [...new Set(keys)].length) {
-        throw new Error("Duplicate keys")
-    }
     var obj = {}
     for (let key of keys) {
-        obj["key" + key] = map.get(key)
+        obj[key] = map.get(key)
     }
     return obj
 }
 
-export function generateGameBoard() {
+function objectToMap(obj) {
+    var keys = [...obj.keys()]
+    var map = new Map()
+    for (let key of keys) {
+        map.set(parseInt(key), obj[key])
+    }
+    return map
+}
+
+export function generateGameBoard(num = 10000) {
     var [width, height] = [1200, 700]
-    var [mapTiles, neighborMap] = createGameBoard(100, height, width)
+    var [mapTiles, neighborMap] = createGameBoard(num, height, width)
+    for (let key of neighborMap.keys()) {
+        neighborMap.set(key, [...new Set(neighborMap.get(key))])
+    }
     return {width, height, mapTiles, neighborMap: mapToObject(neighborMap)}
 }
 

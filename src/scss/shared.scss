@@ -33,10 +33,15 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-svg {
+svg, canvas {
     width: 100%;
     border-radius: 10px;
     border: 1px solid black;
+    transition: none;
+}
+
+canvas {
+    position: absolute;
 }
 
 a {
@@ -116,12 +121,21 @@ li p, li h3 {
 
 #focusBox {
     height: 100%;
-    padding: 5px;
+    border: none;
 }
 
 #createButton {
     height: min-content;
     margin: auto 0 auto 20px;
+}
+
+#mapContainer {
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    padding: 10px;
 }
 
 #cookieAlert:not(.hidden) {
@@ -184,6 +198,7 @@ li p, li h3 {
 .btn-primary {
     outline: none;
     position: relative;
+    font-size: 1rem;
     background-color: rgba($main-accent, 0.4);
 
     &:hover {
@@ -248,29 +263,22 @@ li p, li h3 {
     display: flex;
 }
 
-.center-col {
-    width: 60%;
-}
-
-.right-col {
-    float: right;
-    width: 20%;
-}
-
-.left-col {
-    float: left;
-    width: 20%;
-}
-
-.game {
+.ui {
+    z-index: -100;
     padding: 10px;
     width: 100%;
+    height: 100%;
     display: grid;
     grid-template-columns: 2fr 6fr 2fr;
-    grid-template-rows: auto auto;
+    grid-template-rows: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr);
     grid-gap: 10px;
-    grid-template-areas: "left center topRight"
-                         "left center right";
+    grid-template-areas: "left . topRight"
+                         "left . right"
+                         "bottom bottom bottom";
+
+    * {
+        z-index: 100;
+    }
 }
 
 .outline {
@@ -285,6 +293,16 @@ li p, li h3 {
     h3 {
         font-weight: 500;
         margin: 8px 0;
+    }
+
+}
+
+.ui-box {
+    @extend .text-box;
+    background-color: rgba($bg-color, .6);
+
+    &:hover {
+        background-color: rgba($bg-color, .9);
     }
 }
 

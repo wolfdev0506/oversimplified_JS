@@ -1,8 +1,13 @@
 import React from 'react'
 import {API} from '../../game/api'
 import {createGameBoard, generateGameBoard} from '../../game/game'
+import testData from '../../testData.json'
 
 export class CreatePage extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {display:""}
+    }
 
     componentDidMount() {
         // Start after DOM is rendered
@@ -14,11 +19,14 @@ export class CreatePage extends React.Component {
     }
 
     generateBoard() {
-        const setupData = generateGameBoard()
+        // const setupData = generateGameBoard()
+        // this.setState({display: JSON.stringify(setupData)})
+        const setupData = testData
 
         const lobbyAPI = new API(this.props.serverURL)
         lobbyAPI.createMatch({numPlayers: 2, setupData})
-            .then(({gameID}) => window.location.href = `/match/${gameID}`)
+            .then(({matchID}) => window.location.href = `/match/${matchID}${this.props.indirect? "&" + this.props.serverURL : ""}`)
+            .catch(error => console.error(error))
 
 
     }
@@ -32,6 +40,7 @@ export class CreatePage extends React.Component {
                 <div className="loader"/>
             </div>
         </div>
+        // this.state.display
         )
     }
 }
