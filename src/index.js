@@ -5,7 +5,8 @@ import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-d
 import Pages from './components/Pages'
 import Cookies from 'universal-cookie'
 
-const serverURL = "localhost"
+console.log(window.location.hostname)
+const serverURL = window.location.hostname
 // const serverURL = "oversimplified.herokuapp.com"
 
 class Website extends React.Component {
@@ -34,8 +35,13 @@ class Website extends React.Component {
                         <Route exact path="/" component={Pages.HomePage}/>
                         <Route exact path="/help" component={Pages.HelpPage}/>
                         <Route exact path="/sandbox" component={Pages.SandboxPage}/>
+
                         <Route exact path="/match/:matchID" render={routeProps => <Pages.MatchPage match={routeProps} serverURL={serverURL} />}/>
+                        <Route exact path="/match/:matchID&:serverURL" render={routeProps => <Pages.MatchPage match={routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>
+                        
                         <Route exact path="/create" render={routeProps => <Pages.CreatePage match={routeProps} serverURL={serverURL} />}/>
+                        <Route exact path="/create&:serverURL" render={routeProps => <Pages.CreatePage match={routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>
+                        
                         <Route exact path='/lobby' render={routeProps => <Pages.LobbyPage match={routeProps} serverURL={serverURL}/>}/>
                         {/* <Route path="*">
                             <Redirect to="/"/>

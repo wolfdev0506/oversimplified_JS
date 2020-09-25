@@ -18,20 +18,20 @@ const MatchList = ({matches}) => (
             <h3>Status</h3>
             <h3>Action</h3>
         </li>
-        {matches.map(match => <Match data={match}/>)}
+        {matches.length > 0? matches.map(match => <Match data={match}/>) : <li className="flex-center"><p>No Games Currently Running</p></li>}
     </ul>
 )
 
 const Match = ({data}) => (
     <li className="game-list-item">
-        <p>{data.gameID}</p>
+        <p>{data.matchID}</p>
         <p>{getPlayerNums(data.players)[0]}</p>
         <p>{getPlayerNums(data.players)[1]? "Full" : "Open"}</p>
         {getPlayerNums(data.players)[1]? 
             <span/>
             :
             <div className="btn-container">
-                <a className="join-btn btn-primary" href={`/match/${data.gameID}`}>Join</a>
+                <a className="join-btn btn-primary" href={`/match/${data.matchID}`}>Join</a>
             </div>
         }
     </li>
@@ -68,8 +68,8 @@ export class LobbyPage extends React.Component {
     updateGames() {
         const lobbyAPI = new API(this.state.server)
         lobbyAPI.listMatches()
-            .then(({rooms}) => this.setState({"matches": rooms}))
-            .then(() => this.gamesUpdater = setTimeout(() => this.updateGames(), 1000))
+            .then(({matches}) => this.setState({"matches": matches}))
+            .then(() => this.gamesUpdater = setTimeout(() => this.updateGames(), 2000))
             .catch(reason => {console.error(reason); this.setState({matches: false})})
     }
 

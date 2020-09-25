@@ -7,12 +7,6 @@ import { SocketIO } from 'boardgame.io/multiplayer'
 import Cookies from 'universal-cookie'
 
 
-export function JoinPage_({ serverURL }) {
-    const [matchID, playerID] = serverURL.split('/').slice(-2, 0)
-
-
-}
-
 export class MatchPage extends React.Component {
     constructor(props) {
         super(props)
@@ -24,7 +18,7 @@ export class MatchPage extends React.Component {
         this.MultiplayerClient = Client({
             game: Oversimplified,
             numPlayers: 2,
-            board: OversimplifiedBoard,
+            board: BoardWrapper({leaveMatch: () => this.leaveMatch()}),
             multiplayer: SocketIO({server: this.matchAPI.url}),
             debug: false,
         });
@@ -38,13 +32,18 @@ export class MatchPage extends React.Component {
                 .then(({players}) => this.playerID = this.getIDFromPlayers(players))
                 .then(() => 
                     this.matchAPI.joinMatch(this.matchID, {playerID: this.playerID, playerName: "bob"})
-                        .then(({playerCredentials}) => this.setState({MultiplayerClient: <this.MultiplayerClient matchID={this.matchID} playerID={this.playerID} credentials={playerCredentials}/>}) )
+                        .then(({playerCredentials}) => this.credentials = playerCredentials)
+                        .then(playerCredentials => this.setState({MultiplayerClient: <this.MultiplayerClient matchID={this.matchID} playerID={this.playerID} credentials={playerCredentials}/>}) )
                         .catch(reason => {console.error(reason); this.setState({MultiplayerClient: "Error"})})
                 )
                 .then(() => this.cookies.set(this.matchID, {playerID: this.playerID, credentials: this.credentials}), {path: '/'})
         }
+    }
 
-
+    leaveMatch() {
+        return this.matchAPI.leaveMatch(this.matchID, {playerID: this.playerID, credentials: this.credentials})
+            .then(() => this.setState({MultiplayerClient: null}))
+            .catch(reason => {console.error(reason); console.log({playerID: this.playerID, credentials: this.credentials})})
     }
 
     getIDFromPlayers(players) {
@@ -71,4 +70,9 @@ export class MatchPage extends React.Component {
             return this.state.MultiplayerClient
         }
     }
+}
+
+
+function BoardWrapper(extraProps) {
+    return props => <OversimplifiedBoard {...props} {...extraProps}/>
 }
