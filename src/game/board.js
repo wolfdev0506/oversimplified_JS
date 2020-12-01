@@ -17,6 +17,7 @@ export class OversimplifiedBoard extends React.Component {
             x: 0,
             y: 0,
             scale: 1,
+            activeOnHover: true
         }
 
         this.hoverColor = "red"
@@ -53,7 +54,7 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     handleScroll(e) {
-        const scale = clamp(.1, 10, this.state.scale - ((e.deltaY/100) * (this.state.scale/10)))
+        const scale = clamp(.5, 10, this.state.scale - ((e.deltaY/100) * (this.state.scale/10)))
         if (scale !== .1 && scale !== 10) {
             this.setState({
                 scale,
@@ -85,7 +86,13 @@ export class OversimplifiedBoard extends React.Component {
             this.clearCanvas(ctx2)
 
             this.renderTile(ctx2, this.props.G.mapTiles[this.lastHover], this.hoverColor)
+
+            if (this.state.activeOnHover) {
+                this.setState({activeTile: this.lastHover})
+            }
         }
+
+        if (!this.state.activeOnHover)
         this.renderTile(ctx2, this.props.G.mapTiles[this.state.activeTile], this.activeColor)
     }
 
@@ -132,6 +139,10 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     setActiveTile(i) {
+        if (this.state.activeTile === i) {
+            this.setState({activeOnHover: !this.state.activeOnHover})
+        }
+
         this.setState({ activeTile: i })
 
         const ctx2 = this.mapOverlayRef.current.getContext("2d")

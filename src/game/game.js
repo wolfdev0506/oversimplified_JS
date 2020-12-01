@@ -86,7 +86,7 @@ function objectToMap(obj) {
     return map
 }
 
-export function generateGameBoard(num = 10000) {
+export function generateGameBoard(num = 100) {
     var [width, height] = [1200, 700]
     var [mapTiles, neighborMap] = createGameBoard(num, height, width)
     for (let key of neighborMap.keys()) {
@@ -187,6 +187,7 @@ function makeAndMergeTiles(numPoints, width, height) {
     var polygonsIndex = polygons.map((v, i) => i)
     var touching = []
     var mapTiles = []
+    var oceanCounter = 0
 
     while (polygonsIndex.length > 0) {
         if (polygonsIndex.length % 5 === 0) console.log(polygonsIndex.length)
@@ -257,10 +258,11 @@ function makeAndMergeTiles(numPoints, width, height) {
                 isOcean: !isLand, 
                 color: (!isLand ? "blue" : "green"), 
                 center: getMiddlestPoint(polygonIndexes.map((v) => points[v])),
-                name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : "Ocean"
+                name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : ("Ocean " + (oceanCounter+= 1))
             },
             id: polygonsIndex.length
         })
+        
     }
     return mapTiles
 }
@@ -359,7 +361,6 @@ function combine(poly1, poly2) {
         var realPoly1 = polygon([poly1])
         var realPoly2 = polygon([poly2])
     } catch (e) {
-        console.log(poly1, poly2)
         throw e
     }
     var uPoly = union(realPoly1, realPoly2)
@@ -376,7 +377,6 @@ function contains(arr, value) {
         }
         return false
     } catch (e) {
-        console.log(arr, value)
         throw e
     }
 }

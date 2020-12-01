@@ -1,6 +1,6 @@
 import React from 'react'
 import {API} from '../../game/api'
-import {createGameBoard, generateGameBoard} from '../../game/game'
+import {generateGameBoard} from '../../game/game'
 import testData from '../../testData.json'
 
 export class CreatePage extends React.Component {
