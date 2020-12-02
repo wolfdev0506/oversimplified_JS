@@ -36,13 +36,13 @@ class Website extends React.Component {
                         <Route exact path="/help" component={Pages.HelpPage}/>
                         <Route exact path="/sandbox" component={Pages.SandboxPage}/>
 
-                        <Route exact path="/match/:matchID" render={routeProps => <Pages.MatchPage match={routeProps} serverURL={serverURL} />}/>
-                        <Route exact path="/match/:matchID&:serverURL" render={routeProps => <Pages.MatchPage match={routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>
+                        <Route exact path="/match/:matchID" render={routeProps => <Pages.MatchPage {...routeProps} serverURL={serverURL} />}/>
+                        <Route exact path="/match/:matchID/:serverURL" render={routeProps => <Pages.MatchPage {...routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>
                         
-                        <Route exact path="/create" render={routeProps => <Pages.CreatePage match={routeProps} serverURL={serverURL} />}/>
-                        <Route exact path="/create&:serverURL" render={routeProps => <Pages.CreatePage match={routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>
+                        <Route exact path="/create" render={routeProps => <Pages.CreatePage {...routeProps} serverURL={serverURL} />}/>
+                        <Route exact path="/create/:serverURL" render={routeProps => <Pages.CreatePage {...routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>
                         
-                        <Route exact path='/lobby' render={routeProps => <Pages.LobbyPage match={routeProps} serverURL={serverURL}/>}/>
+                        <Route exact path='/lobby' render={routeProps => <Pages.LobbyPage {...routeProps} serverURL={serverURL}/>}/>
                         {/* <Route path="*">
                             <Redirect to="/"/>
                         </Route> */}

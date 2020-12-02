@@ -25,7 +25,7 @@ export class CreatePage extends React.Component {
 
         const lobbyAPI = new API(this.props.serverURL)
         lobbyAPI.createMatch({numPlayers: 2, setupData})
-            .then(({matchID}) => window.location.href = `/match/${matchID}${this.props.indirect? "&" + this.props.serverURL : ""}`)
+            .then(({matchID}) => window.location.href = `/match/${matchID}${this.props.indirect? "/" + this.props.serverURL : ""}`)
             .catch(error => console.error(error))
 
 

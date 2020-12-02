@@ -10,11 +10,11 @@ import Cookies from 'universal-cookie'
 export class MatchPage extends React.Component {
     constructor(props) {
         super(props)
+        console.log(props)
         this.state = {error: false, renderBoard:false}
         this.matchAPI = new API(props.serverURL)
         this.cookies = new Cookies()
-        this.matchID = props.match.match.params.matchID
-        console.log(props)
+        this.matchID = props.match.params.matchID
 
         this.MultiplayerClient = Client({
             game: Oversimplified,
