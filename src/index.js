@@ -6,8 +6,8 @@ import Pages from './components/Pages'
 import Cookies from 'universal-cookie'
 
 console.log(window.location.hostname)
-// const serverURL = window.location.hostname
-const serverURL = "oversimplified.herokuapp.com"
+const serverURL = window.location.hostname
+// const serverURL = "oversimplified.herokuapp.com"
 
 class Website extends React.Component {
     constructor(props) {

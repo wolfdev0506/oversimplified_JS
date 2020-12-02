@@ -18,7 +18,13 @@ const MatchList = ({matches}) => (
             <h3>Status</h3>
             <h3>Action</h3>
         </li>
-        {matches.length > 0? matches.map(match => <Match data={match}/>) : <li className="flex-center"><p>No Games Currently Running</p></li>}
+        {matches === "loading"? 
+            <li className="flex-center"><p>Fetching Games...</p></li> : (
+                matches.length > 0? 
+                    matches.map(match => <Match data={match}/>) : 
+                    <li className="flex-center"><p>No Games Currently Running</p></li>
+            )
+        }
     </ul>
 )
 
@@ -50,7 +56,7 @@ export class LobbyPage extends React.Component {
         super(props)
         this.state = {
             server: props.serverURL,
-            matches: []
+            matches: "loading"
         }
         this.gamesUpdater = setTimeout(() => this.updateGames(), 1000)
         this.handleInputChange = this.handleInputChange.bind(this)
@@ -60,7 +66,7 @@ export class LobbyPage extends React.Component {
     handleInputChange(event) {
         clearTimeout(this.gamesUpdater)
 
-        this.setState({server:event.target.value})
+        this.setState({server:event.target.value, matches: "loading"})
 
         this.gamesUpdater = setTimeout(() => this.updateGames(), 1000)
     }
