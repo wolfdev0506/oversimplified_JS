@@ -10,10 +10,11 @@ import Cookies from 'universal-cookie'
 export class MatchPage extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {gameClient: "empty", renderBoard:false}
+        this.state = {error: false, renderBoard:false}
         this.matchAPI = new API(props.serverURL)
         this.cookies = new Cookies()
         this.matchID = props.match.match.params.matchID
+        console.log(props)
 
         this.MultiplayerClient = Client({
             game: Oversimplified,
@@ -23,26 +24,18 @@ export class MatchPage extends React.Component {
             debug: false,
         });
 
-        console.log("CONSTRUCTOR")
-
         if (this.cookies.get(this.matchID)) {
             let cookie = this.cookies.get(this.matchID)
-            console.log("FOUND COOKIE")
-            console.log(cookie)
             this.playerID = cookie.playerID
             this.credentials = cookie.credentials
-            // this.state = {gameClient: <this.MultiplayerClient matchID={this.matchID} playerID={this.playerID} credentials={this.credentials}/>}
             this.state.renderBoard = true
         } else {
             this.matchAPI.getMatch(this.matchID)
                 .then(({players}) => this.playerID = this.getIDFromPlayers(players))
                 .then(() => 
                     this.matchAPI.joinMatch(this.matchID, {playerID: this.playerID, playerName: "bob"})
-                        .then(({playerCredentials}) => this.credentials = playerCredentials)
-                        // .then(playerCredentials => this.setState({gameClient: <this.MultiplayerClient matchID={this.matchID} playerID={this.playerID} credentials={playerCredentials}/>}) )
-                        .then(() => this.setState({renderBoard: true}))
-                        .then(() => console.log("JOINED"))
-                        .catch(reason => {console.error(reason); this.setState({gameClient: "Error"})})
+                        .then(({playerCredentials}) => {this.credentials = playerCredentials; this.setState({renderBoard: true})})
+                        .catch(reason => {console.error(reason); this.setState({error: true})})
                 )
                 .then(() => this.cookies.set(this.matchID, {playerID: this.playerID, credentials: this.credentials}), {path: '/'})
         }
@@ -63,25 +56,9 @@ export class MatchPage extends React.Component {
     }
 
     render() {
-        console.log("MatchPage Render", this.state.gameClient)
-        // if (this.state.gameClient === "empty") {
-        //     return (  
-        //         <div className="row flex-center height100">
-        //             <div className="col top-space">
-        //                 <h2>Loading...</h2>
-        //                 <div className="loader"/>
-        //             </div>
-        //         </div>
-        //     )
-        // } else if (this.state.gameClient === "Error") {
-        //     return <div className="row flex-center"><h2>Error: Game Not Found</h2></div>
-        // } else {
-        //     console.log("why is this an error")
-        //     return this.state.gameClient
-        //     // return "thing"
-        // }
-
-        if (this.state.renderBoard) {
+        if (this.state.error) {
+            return <div className="row flex-center"><h2>Error: Game Not Found</h2></div>
+        } else if (this.state.renderBoard) {
             return <this.MultiplayerClient matchID={this.matchID} playerID={this.playerID} credentials={this.credentials}/>
         } else {
             return (
