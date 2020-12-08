@@ -83,6 +83,21 @@ input:focus {
   outline: none;
 }
 
+select {
+  background-color: transparent;
+  border-color: transparent;
+  font-size: 20px;
+  color: #535353;
+  padding: 5px;
+  border: 2px solid rgba(58, 175, 169, 0.4);
+  border-radius: 10px;
+}
+
+select:focus {
+  border-color: #3aafa9;
+  outline: none;
+}
+
 ul.series {
   list-style: none;
   padding: 10px;

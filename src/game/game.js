@@ -206,6 +206,9 @@ function merge1PolyTiles(mapTiles, neighborMap) {
     for (let key of neighborMap.keys()) { // clean up neighborMap
         neighborMap.set(key, [...new Set(neighborMap.get(key))])
     }
+    
+    mapTiles = mapTiles.map(v => ({...v, touchCellsIndex: undefined, cellsIndex: undefined}))
+
     return [mapTiles, neighborMap]
 
 }

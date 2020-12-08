@@ -85,6 +85,21 @@ input {
     }
 }
 
+select {
+    background-color: transparent;
+    border-color: transparent;
+    font-size: 20px;
+    color: $text-color;
+    padding: 5px;
+    border: 2px solid rgba($main-accent, 0.4);
+    border-radius: 10px;
+
+    &:focus {
+        border-color: $main-accent;
+        outline: none;
+    }
+}
+
 ul.series {
     list-style: none;
     padding: 10px;
