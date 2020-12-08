@@ -35,6 +35,7 @@ class Website extends React.Component {
                         <Route exact path="/" component={Pages.HomePage}/>
                         <Route exact path="/help" component={Pages.HelpPage}/>
                         <Route exact path="/sandbox" component={Pages.SandboxPage}/>
+                        <Route exact path='/generate' component={Pages.GeneratePage}/>
 
                         <Route exact path="/match/:matchID" render={routeProps => <Pages.MatchPage {...routeProps} serverURL={serverURL} />}/>
                         <Route exact path="/match/:matchID/:serverURL" render={routeProps => <Pages.MatchPage {...routeProps} serverURL={routeProps.match.params.serverURL} indirect={true} />}/>

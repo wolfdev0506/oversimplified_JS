@@ -1,12 +1,10 @@
 import React from 'react'
 import {API} from '../../game/api'
-import {generateGameBoard} from '../../game/game'
-import testData from '../../testData.json'
 
 export class CreatePage extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {display:""}
+        this.state = {display:"loading"}
     }
 
     componentDidMount() {
@@ -19,9 +17,7 @@ export class CreatePage extends React.Component {
     }
 
     generateBoard() {
-        // const setupData = generateGameBoard()
-        // this.setState({display: JSON.stringify(setupData)})
-        const setupData = testData
+        const setupData = {boardID: 2}
 
         const lobbyAPI = new API(this.props.serverURL)
         lobbyAPI.createMatch({numPlayers: 2, setupData})
@@ -32,7 +28,6 @@ export class CreatePage extends React.Component {
     }
 
     render() {
-        console.log("render")
         return (
         <div className="row flex-center height100">
             <div className="col top-space">
@@ -40,7 +35,6 @@ export class CreatePage extends React.Component {
                 <div className="loader"/>
             </div>
         </div>
-        // this.state.display
         )
     }
 }

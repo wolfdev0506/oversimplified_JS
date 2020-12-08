@@ -9,14 +9,6 @@ export const Oversimplified = {
     name: "Oversimplified",
 
     setup: (ctx, setupData) => {
-        // setupData = setupData === undefined? generateGameBoard() : setupData
-        // setupData.
-        if (setupData === undefined) {
-            console.log(setupData, ctx, setupData === undefined)
-            setupData = generateGameBoard()
-        } else {
-            console.log(JSON.stringify(setupData).slice(0, 100), setupData === undefined)
-        }
         return setupData
     },
 
@@ -89,16 +81,79 @@ function objectToMap(obj) {
 export function generateGameBoard(num = 100) {
     var [width, height] = [1200, 700]
     var [mapTiles, neighborMap] = createGameBoard(num, height, width)
-    for (let key of neighborMap.keys()) {
-        neighborMap.set(key, [...new Set(neighborMap.get(key))])
-    }
     return {width, height, mapTiles, neighborMap: mapToObject(neighborMap)}
 }
 
 export function createGameBoard(numPoints, height, width) {
     var mapTiles = makeAndMergeTiles(numPoints, width, height)
-    var neighborMap = generateTouchMap(mapTiles)
-    return merge1PolyTiles(mapTiles, neighborMap)
+    var neighborMap = generateTouchMap(mapTiles);  // this semicolon is need bc javascript is stupid
+    [mapTiles, neighborMap] = merge1PolyTiles(mapTiles, neighborMap)
+    mapTiles = assignBiomes(mapTiles, neighborMap)
+    return [mapTiles, neighborMap]
+}
+
+function assignBiomes(mapTiles, neighborMap) {
+    const resources = ["coal", "iron", "lumber", "stone", "food", "oil"]
+    const colorVariation = 30
+
+    const oceanBiomes = {ocean: {chance: 100, moveability: 10, color: [30, 144, 255]}}
+    const landBiomes = {
+        grassland: {chance: 25, moveability: 10, color: [107, 142, 35]},
+        forest: {chance: 25, moveability: 6, color: [0, 100, 0]},
+        desert: {chance: 25, moveability: 7, color: [225, 169, 95]},
+        mountain: {chance: 25, moveability: 3, color: [112, 128, 144]}
+    }
+
+    const tiles = mapTiles.map((_, i) => i)
+    const landTiles = tiles.filter(v => !mapTiles[v].data.isOcean)
+    const oceanTiles = tiles.filter(v => mapTiles[v].data.isOcean)
+
+    while (landTiles.length > 0) {
+        let current = landTiles[Math.floor(Math.random() * landTiles.length)]
+        let group = neighborMap.get(current).filter(v => landTiles.includes(v))
+
+        let baseBiome = pickBiome(landBiomes)
+        let groupBiomes = group.map(v => [v, pickBiome(landBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
+        groupBiomes = groupBiomes.concat([[current, baseBiome]])
+
+        for (let [i, b] of groupBiomes) {
+            mapTiles[i].data = {...landBiomes[b], ...mapTiles[i].data, biome: b, color: numToHexColor(landBiomes[b].color, false, colorVariation)}
+            landTiles.splice(landTiles.indexOf(i), 1)
+        }
+    }
+
+    while (oceanTiles.length > 0) {
+        let current = oceanTiles[Math.floor(Math.random() * oceanTiles.length)]
+        let group = neighborMap.get(current).filter(v => oceanTiles.includes(v))
+
+        let baseBiome = pickBiome(oceanBiomes)
+        let groupBiomes = group.map(v => [v, pickBiome(oceanBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
+        groupBiomes = groupBiomes.concat([[current, baseBiome]])
+
+        for (let [i, b] of groupBiomes) {
+            mapTiles[i].data = {...oceanBiomes[b], ...mapTiles[i].data, biome: b, color: numToHexColor(oceanBiomes[b].color, false, colorVariation)};
+            oceanTiles.splice(oceanTiles.indexOf(i), 1)
+        }
+    }
+
+    return mapTiles
+}
+
+function pickBiome(biomes, biome50) {
+    if (biome50 && biomes.length > 1) {
+        biomes[biome50].chance = [...Object.entries(biomes)].filter(v => v[0] !== biome50).reduce((prev, curr) => prev +  curr[1].chance, 0)  // gives this biome a 50% chance of being picked
+    }
+
+    const maxPick = [...Object.entries(biomes)].reduce((prev, curr) => prev + curr[1].chance, 0)
+    const r = Math.ceil(Math.random() * maxPick)
+    var num = 0
+    for (let [name, data] of Object.entries(biomes)) {
+        if (num < r && r <= num + data.chance) {
+            return name
+        }
+        num += data.chance
+    }
+    throw Error("pickBiome didn't pick a biome")
 }
 
 function merge1PolyTiles(mapTiles, neighborMap) { 
@@ -147,6 +202,9 @@ function merge1PolyTiles(mapTiles, neighborMap) {
                 neighborMap.set(key, stepDown(neighborMap.get(key), removeTile))
             }
         }
+    }
+    for (let key of neighborMap.keys()) { // clean up neighborMap
+        neighborMap.set(key, [...new Set(neighborMap.get(key))])
     }
     return [mapTiles, neighborMap]
 
@@ -279,7 +337,7 @@ function generateRegions(mapTiles, neighborMap) {
         let region = {
             tiles: [baseTile],
             name: names.splice(Math.floor(Math.random() * names.length), 1)[0],
-            color: `#${Math.floor(Math.random() * 256).toString(16)}${Math.floor(Math.random() * 256).toString(16)}${Math.floor(Math.random() * 256).toString(16)}`
+            color: numToHexColor(null, true)
         }
 
         for (let i = 0; i < numTiles; i++) {
@@ -392,4 +450,23 @@ function getMiddlestPoint(points) {
 
     points.sort((a, b) => (Math.abs(a[0] - averageX) - Math.abs(b[0] - averageX)) + (Math.abs(a[1] - averageY) - Math.abs(b[1] - averageY)))
     return points[0]
+}
+
+function numToHexColor(arr, random=false, wiggle=0) {
+    if (random) {
+        arr = (new Array(3)).map(Math.floor(Math.random() * 256))
+    }
+
+    arr = arr.map(v =>  clamp(v + Math.ceil((Math.random() * wiggle) - wiggle / 2), 0, 255))
+
+    return '#' + arr.map(zeroPadHex).join("")
+}
+
+function clamp(num, min, max) {
+    return Math.max(min, Math.min(max, num))
+}
+
+function zeroPadHex(num) {
+    var s = num.toString(16)
+    return s.length == 1? '0' + s : s 
 }
