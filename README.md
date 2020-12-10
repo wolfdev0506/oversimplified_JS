@@ -6,7 +6,12 @@ In the project directory, you can run:
 
 ### `npm start`
 
-Runs the app in the development mode.<br />
+Runs the app in production mode, and starts the server.<br />
+Open [http://localhost:8000](http://localhost:8000) to view it in the browser.
+
+### `npm run start-client`
+
+Runs the app (just the website) in development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.<br />
