@@ -10,7 +10,6 @@ import Cookies from 'universal-cookie'
 export class MatchPage extends React.Component {
     constructor(props) {
         super(props)
-        console.log(props)
         this.state = {error: false, renderBoard:false}
         this.matchAPI = new API(props.serverURL)
         this.cookies = new Cookies()

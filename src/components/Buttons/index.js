@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import React from "react";
-import {generateGameBoard} from '../../game/game'
 
 export const SandboxButton = (props) => (
     <div className="col btn-container">

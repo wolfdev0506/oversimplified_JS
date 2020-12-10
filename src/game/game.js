@@ -1,9 +1,10 @@
 import { INVALID_MOVE } from 'boardgame.io/core';
 import { Delaunay } from "d3-delaunay";
-import { polygon, union } from "@turf/turf"
+import { polygon, union, hexGrid } from "@turf/turf"
 import { noise } from '@chriscourses/perlin-noise'
 import names from '../names.json'
 
+export const [WIDTH, HEIGHT] = [1600, 900]
 
 export const Oversimplified = {
     name: "Oversimplified",
@@ -79,17 +80,18 @@ function objectToMap(obj) {
 }
 
 export function generateGameBoard(num = 100) {
-    var [width, height] = [1200, 700]
-    var [mapTiles, neighborMap] = createGameBoard(num, height, width)
-    return {width, height, mapTiles, neighborMap: mapToObject(neighborMap)}
+    var [mapTiles, neighborMap] = createGameBoard(num, HEIGHT, WIDTH)
+    return {width: WIDTH, height: HEIGHT, mapTiles, Points: num, neighborMap: mapToObject(neighborMap)}
 }
 
-export function createGameBoard(numPoints, height, width) {
-    var mapTiles = makeAndMergeTiles(numPoints, width, height)
+export function createGameBoard(numPoints, height, width, hex=true) {
+    var points = hex? makeHexVoronoiPoints(numPoints, width, height) : makeRandomPoints(numPoints, width, height)
+    var mapTiles = makeAndMergeTiles(points, width, height)
     var neighborMap = generateTouchMap(mapTiles);  // this semicolon is need bc javascript is stupid
     [mapTiles, neighborMap] = merge1PolyTiles(mapTiles, neighborMap)
     mapTiles = assignBiomes(mapTiles, neighborMap)
-    return [mapTiles, neighborMap]
+    return [mapTiles, neighborMap];
+
 }
 
 function assignBiomes(mapTiles, neighborMap) {
@@ -156,7 +158,7 @@ function pickBiome(biomes, biome50) {
     throw Error("pickBiome didn't pick a biome")
 }
 
-function merge1PolyTiles(mapTiles, neighborMap) { 
+function merge1PolyTiles(mapTiles, neighborMap) {
     var onePolyTilesIndexes = [...neighborMap.keys()].filter((v) => mapTiles[v].points.length === 1)
     var validOnePolyTiles = onePolyTilesIndexes.filter((v) => neighborMap.get(v).filter((v2) => mapTiles[v2].data.isOcean === mapTiles[v].data.isOcean).length > 0)
     var dontFit = []
@@ -232,7 +234,36 @@ function generateTouchMap(mapTiles) {
     return neighborMap
 }
 
-function makeAndMergeTiles(numPoints, width, height) {
+function makeHexVoronoiPoints(hexes, width, height) {
+    var sideLength = Math.ceil(width / (2 * Math.sqrt(width * hexes / height)))
+    var verticalHexes = Math.ceil(height / (sideLength * Math.sqrt(3)))
+    var horizontalHexes = Math.ceil(width / (sideLength * 1.5))
+    
+    var points = []
+    var start = [sideLength / 2, (.1 * sideLength) + (sideLength * Math.sqrt(3) / 2) ]
+    var current = [...start]
+
+    for (let col = 0; col < horizontalHexes; col++) {
+        if (current[0] > width) {
+            break
+        }
+
+        for (let row = 0; row < verticalHexes; row++) {
+            if (current[1] > height) {
+                break
+            }
+
+            points.push(current)
+            current = [current[0], current[1] + (2 * sideLength)]
+        }
+
+        var mul = col % 2 === 0 ? -1 : 0
+        current = [start[0] + (1.5 * sideLength * (col + 1)), start[1] + (mul * sideLength * Math.sqrt(3) / 2)]
+    }
+    return points
+}
+
+function makeRandomPoints(numPoints, width, height) {
     var points = Array(numPoints)
         .fill(0)
         .map(() => [Math.floor(Math.random() * width), Math.floor(Math.random() * height)])
@@ -242,10 +273,74 @@ function makeAndMergeTiles(numPoints, width, height) {
         .reverse()
         .map(JSON.parse)
 
+    return points
+}
+
+function makeHexGrid(hexes, width, height) {
+    // Even-q layout with double width coordinates
+    var hexGrid = []
+    var hexTiles = []
+
+    var sideLength = Math.ceil(width / (2 * Math.sqrt(width * hexes / height)))
+    var verticalHexes = Math.ceil(height / sideLength)
+    var horizontalHexes = Math.ceil(width / sideLength)
+    sideLength *= (verticalHexes - 1) / verticalHexes
+
+    var start = [0, 0]
+    var lastStart = [...start]
+    var neighborMap = new Map()
+    console.log(sideLength)
+
+    for (let col = 0; col < horizontalHexes; col++) {
+        hexGrid.push([])
+        for (let row = 0; row < verticalHexes; row++) {
+            hexGrid[hexGrid.length - 1].push(hexTiles.length)
+
+            hexTiles.push(
+                {
+                    polygon: makeHex(lastStart, sideLength), 
+                    id: 0, 
+                    data: {color:'red'}
+                }
+            )
+            lastStart = [lastStart[0], lastStart[1] + sideLength * Math.sqrt(3)]
+        }
+        let mul = col % 2 === 0? -1 : 0
+        lastStart = [lastStart[0] + (sideLength * 1.5), start[1] + (sideLength * Math.sqrt(3) * mul / 2)]
+    }
+
+    for (let i = 0; i < hexGrid.length; i++) {
+        for (let i = 0; i < hexGrid[i].length; i++) {
+
+        }
+    }
+    
+    return hexTiles
+}
+
+function makeHex(startPoint, sideLength) {
+    var points = [startPoint]
+    var lastPoint = startPoint
+
+    for (let i = 0; i < 6; i++) {
+        if ([0, 3].includes(i)) {
+            let mul = i === 0? 1 : -1
+            lastPoint = [lastPoint[0] + (sideLength * mul), lastPoint[1]]
+        } else {
+            let xMul = [1, 5].includes(i)? 1 : -1
+            let yMul = [1, 2].includes(i)? 1 : -1
+            lastPoint = [lastPoint[0] + (sideLength * xMul / 2), lastPoint[1] + (sideLength * Math.sqrt(3) * yMul / 2)]
+        }
+        points.push(lastPoint)
+    }
+    return points
+}
+
+function makeAndMergeTiles(points, width, height) {
     var voronoi = Delaunay.from(points).voronoi([0, 0, width, height])
 
     var polygons = [...voronoi.cellPolygons()]
-    var polygonsIndex = polygons.map((v, i) => i)
+    var polygonsIndex = polygons.map((_, i) => i)
     var touching = []
     var mapTiles = []
     var oceanCounter = 0

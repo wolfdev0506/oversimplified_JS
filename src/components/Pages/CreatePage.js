@@ -1,6 +1,7 @@
 import React from 'react'
 import {API} from '../../game/api'
 import boards from '../../game/boards'
+import * as Buttons from '../Buttons/'
 
 const MapSelect = ({onChange }) => (
     // stop the page from refreshing upon hitting Enter
@@ -52,6 +53,7 @@ export class CreatePage extends React.Component {
                         Create Game
                     </button>
                 </div>
+                <Buttons.LobbyButton/>
             </div>
         </div>
         )

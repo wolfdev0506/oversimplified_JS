@@ -27,7 +27,7 @@ export class OversimplifiedBoard extends React.Component {
         this.canvasScale = 2
         this.canvasXY = [this.board.width * this.canvasScale, this.board.height * this.canvasScale]
         this.lastHover = 0
-        this.handleScroll = this.handleScroll.bind(this);
+        this.handleScroll = this.handleScroll.bind(this)
         this.mapRef = React.createRef()
         this.mapOverlayRef = React.createRef()
     }
