@@ -114,7 +114,7 @@ export class OversimplifiedBoard extends React.Component {
 
     renderTile(ctx, tile, color, mul=1) {
         ctx.beginPath()
-        tile.polygon.map((v, i) => {
+        tile.polygon.forEach((v, i) => {
             if (i === 0) 
                 ctx.moveTo(v[0]*this.canvasScale * mul, v[1]*this.canvasScale * mul) 
             else 

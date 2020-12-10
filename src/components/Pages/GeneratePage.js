@@ -1,4 +1,3 @@
-import { points } from '@turf/turf'
 import React from 'react'
 import {generateGameBoard, WIDTH, HEIGHT} from '../../game/game'
 
@@ -16,7 +15,7 @@ export class GeneratePage extends React.Component {
     }
 
     generateBoard() {
-        this.data = generateGameBoard(20000)
+        this.data = generateGameBoard(2000)
         this.drawMap(this.data)
     }
 
@@ -34,7 +33,7 @@ export class GeneratePage extends React.Component {
 
     renderTile(ctx, tile, color) {
         ctx.beginPath()
-        tile.polygon.map((v, i) => {
+        tile.polygon.forEach((v, i) => {
             if (i === 0) 
                 ctx.moveTo(v[0], v[1]) 
             else 
