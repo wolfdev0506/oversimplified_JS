@@ -48,22 +48,6 @@ a:hover {
 path {
   stroke: black;
   stroke-width: 2px;
-  cursor: pointer;
-}
-
-path:hover {
-  stroke-width: 8px;
-}
-
-ellipse {
-  stroke-width: 2px;
-  stroke: black;
-  fill-opacity: 0;
-}
-
-line {
-  stroke: yellow;
-  stroke-width: 2px;
 }
 
 form {
@@ -95,6 +79,21 @@ input {
 }
 
 input:focus {
+  border-color: #3aafa9;
+  outline: none;
+}
+
+select {
+  background-color: transparent;
+  border-color: transparent;
+  font-size: 20px;
+  color: #535353;
+  padding: 5px;
+  border: 2px solid rgba(58, 175, 169, 0.4);
+  border-radius: 10px;
+}
+
+select:focus {
   border-color: #3aafa9;
   outline: none;
 }
@@ -136,6 +135,7 @@ li p, li h3 {
   height: 100%;
   top: 0;
   padding: 10px;
+  cursor: all-scroll;
 }
 
 #cookieAlert:not(.hidden) {

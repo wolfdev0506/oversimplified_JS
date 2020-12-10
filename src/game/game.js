@@ -1,22 +1,16 @@
-import { INVALID_MOVE } from 'boardgame.io/core';
+/* eslint-disable no-loop-func */
+// import { INVALID_MOVE } from 'boardgame.io/core';
 import { Delaunay } from "d3-delaunay";
-import { polygon, union } from "@turf/turf"
+import { polygon, union, area } from "@turf/turf"
 import { noise } from '@chriscourses/perlin-noise'
 import names from '../names.json'
 
+export const [WIDTH, HEIGHT] = [1600, 900]
 
 export const Oversimplified = {
     name: "Oversimplified",
 
     setup: (ctx, setupData) => {
-        // setupData = setupData === undefined? generateGameBoard() : setupData
-        // setupData.
-        if (setupData === undefined) {
-            console.log(setupData, ctx, setupData === undefined)
-            setupData = generateGameBoard()
-        } else {
-            console.log(JSON.stringify(setupData).slice(0, 100), setupData === undefined)
-        }
         return setupData
     },
 
@@ -68,7 +62,7 @@ class AssertionError extends Error {
     }
 }
 
-function mapToObject(map) {
+export function mapToObject(map) {
     var keys = [...map.keys()]
     var obj = {}
     for (let key of keys) {
@@ -77,7 +71,7 @@ function mapToObject(map) {
     return obj
 }
 
-function objectToMap(obj) {
+export function objectToMap(obj) {
     var keys = [...obj.keys()]
     var map = new Map()
     for (let key of keys) {
@@ -86,29 +80,93 @@ function objectToMap(obj) {
     return map
 }
 
-export function generateGameBoard(num = 10000) {
-    var [width, height] = [1200, 700]
-    var [mapTiles, neighborMap] = createGameBoard(num, height, width)
-    for (let key of neighborMap.keys()) {
-        neighborMap.set(key, [...new Set(neighborMap.get(key))])
+export function generateGameBoard(num = 100) {
+    var [mapTiles, neighborMap] = createGameBoard(num, HEIGHT, WIDTH)
+    return {width: WIDTH, height: HEIGHT, mapTiles, Points: num, neighborMap: mapToObject(neighborMap)}
+}
+
+export function createGameBoard(numPoints, height, width, hex=true) {
+    var points = hex? makeHexVoronoiPoints(numPoints, width, height) : makeRandomPoints(numPoints, width, height)
+    var mapTiles = makeAndMergeTiles(points, width, height)
+    var neighborMap = generateTouchMap(mapTiles);  // this semicolon is need bc javascript is stupid
+    [mapTiles, neighborMap] = merge1PolyTiles(mapTiles, neighborMap)
+    mapTiles = assignBiomes(mapTiles, neighborMap)
+    return [mapTiles, neighborMap];
+
+}
+
+function assignBiomes(mapTiles, neighborMap) {
+    // const resources = ["coal", "iron", "lumber", "stone", "food", "oil"]
+    const colorVariation = 30
+
+    const oceanBiomes = {ocean: {chance: 100, moveability: 10, color: [30, 144, 255]}}
+    const landBiomes = {
+        grassland: {chance: 25, moveability: 10, color: [107, 142, 35]},
+        forest: {chance: 25, moveability: 6, color: [0, 100, 0]},
+        desert: {chance: 25, moveability: 7, color: [225, 169, 95]},
+        mountain: {chance: 25, moveability: 3, color: [112, 128, 144]}
     }
-    return {width, height, mapTiles, neighborMap: mapToObject(neighborMap)}
+
+    const tiles = mapTiles.map((_, i) => i)
+    const landTiles = tiles.filter(v => !mapTiles[v].data.isOcean)
+    const oceanTiles = tiles.filter(v => mapTiles[v].data.isOcean)
+
+    while (landTiles.length > 0) {
+        let current = landTiles[Math.floor(Math.random() * landTiles.length)]
+        let group = neighborMap.get(current).filter(v => landTiles.includes(v))
+
+        let baseBiome = pickBiome(landBiomes)
+        let groupBiomes = group.map(v => [v, pickBiome(landBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
+        groupBiomes = groupBiomes.concat([[current, baseBiome]])
+
+        for (let [i, b] of groupBiomes) {
+            mapTiles[i].data = {...landBiomes[b], ...mapTiles[i].data, biome: b, color: numToHexColor(landBiomes[b].color, false, colorVariation)}
+            landTiles.splice(landTiles.indexOf(i), 1)
+        }
+    }
+
+    while (oceanTiles.length > 0) {
+        let current = oceanTiles[Math.floor(Math.random() * oceanTiles.length)]
+        let group = neighborMap.get(current).filter(v => oceanTiles.includes(v))
+
+        let baseBiome = pickBiome(oceanBiomes)
+        let groupBiomes = group.map(v => [v, pickBiome(oceanBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
+        groupBiomes = groupBiomes.concat([[current, baseBiome]])
+
+        for (let [i, b] of groupBiomes) {
+            mapTiles[i].data = {...oceanBiomes[b], ...mapTiles[i].data, biome: b, color: numToHexColor(oceanBiomes[b].color, false, colorVariation)};
+            oceanTiles.splice(oceanTiles.indexOf(i), 1)
+        }
+    }
+
+    return mapTiles
 }
 
-export function createGameBoard(numPoints, height, width) {
-    var mapTiles = makeAndMergeTiles(numPoints, width, height)
-    var neighborMap = generateTouchMap(mapTiles)
-    return merge1PolyTiles(mapTiles, neighborMap)
+function pickBiome(biomes, biome50) {
+    if (biome50 && biomes.length > 1) {
+        biomes[biome50].chance = [...Object.entries(biomes)].filter(v => v[0] !== biome50).reduce((prev, curr) => prev +  curr[1].chance, 0)  // gives this biome a 50% chance of being picked
+    }
+
+    const maxPick = [...Object.entries(biomes)].reduce((prev, curr) => prev + curr[1].chance, 0)
+    const r = Math.ceil(Math.random() * maxPick)
+    var num = 0
+    for (let [name, data] of Object.entries(biomes)) {
+        if (num < r && r <= num + data.chance) {
+            return name
+        }
+        num += data.chance
+    }
+    throw Error("pickBiome didn't pick a biome")
 }
 
-function merge1PolyTiles(mapTiles, neighborMap) { 
+function merge1PolyTiles(mapTiles, neighborMap) {
     var onePolyTilesIndexes = [...neighborMap.keys()].filter((v) => mapTiles[v].points.length === 1)
     var validOnePolyTiles = onePolyTilesIndexes.filter((v) => neighborMap.get(v).filter((v2) => mapTiles[v2].data.isOcean === mapTiles[v].data.isOcean).length > 0)
     var dontFit = []
 
     for (let polyI of validOnePolyTiles) {
         let validTouching = neighborMap.get(polyI).filter((v) => mapTiles[v].points.length !== 1).filter((v) => mapTiles[v].data.isOcean === mapTiles[polyI].data.isOcean)
-        let perimeters = validTouching.map((v) => getPerimeterFromPolys(mapTiles[polyI].polygon, mapTiles[v].polygon))
+        let perimeters = validTouching.map((v) => getPerimeterToAreaRatio(mapTiles[polyI].polygon, mapTiles[v].polygon))
         let perimeterDiffs = perimeters.map((v, i) => v - perimeter(mapTiles[validTouching[i]].polygon))
         let bestFitI = perimeterDiffs.indexOf(Math.min(...perimeterDiffs))
 
@@ -148,6 +206,12 @@ function merge1PolyTiles(mapTiles, neighborMap) {
             }
         }
     }
+    for (let key of neighborMap.keys()) { // clean up neighborMap
+        neighborMap.set(key, [...new Set(neighborMap.get(key))])
+    }
+    
+    mapTiles = mapTiles.map(v => ({...v, touchCellsIndex: undefined, cellsIndex: undefined}))
+
     return [mapTiles, neighborMap]
 
 }
@@ -171,7 +235,36 @@ function generateTouchMap(mapTiles) {
     return neighborMap
 }
 
-function makeAndMergeTiles(numPoints, width, height) {
+function makeHexVoronoiPoints(hexes, width, height) {
+    var sideLength = Math.ceil(width / (2 * Math.sqrt(width * hexes / height)))
+    var verticalHexes = Math.ceil(height / (sideLength * Math.sqrt(3)))
+    var horizontalHexes = Math.ceil(width / (sideLength * 1.5))
+    
+    var points = []
+    var start = [sideLength / 2, (.1 * sideLength) + (sideLength * Math.sqrt(3) / 2) ]
+    var current = [...start]
+
+    for (let col = 0; col < horizontalHexes; col++) {
+        if (current[0] > width) {
+            break
+        }
+
+        for (let row = 0; row < verticalHexes; row++) {
+            if (current[1] > height) {
+                break
+            }
+
+            points.push(current)
+            current = [current[0], current[1] + (2 * sideLength)]
+        }
+
+        var mul = col % 2 === 0 ? -1 : 0
+        current = [start[0] + (1.5 * sideLength * (col + 1)), start[1] + (mul * sideLength * Math.sqrt(3) / 2)]
+    }
+    return points
+}
+
+function makeRandomPoints(numPoints, width, height) {
     var points = Array(numPoints)
         .fill(0)
         .map(() => [Math.floor(Math.random() * width), Math.floor(Math.random() * height)])
@@ -181,21 +274,27 @@ function makeAndMergeTiles(numPoints, width, height) {
         .reverse()
         .map(JSON.parse)
 
+    return points
+}
+
+function makeAndMergeTiles(points, width, height) {
     var voronoi = Delaunay.from(points).voronoi([0, 0, width, height])
 
     var polygons = [...voronoi.cellPolygons()]
-    var polygonsIndex = polygons.map((v, i) => i)
+    var polygonsIndex = polygons.map((_, i) => i)
     var touching = []
     var mapTiles = []
+    var oceanCounter = 0
 
     while (polygonsIndex.length > 0) {
         if (polygonsIndex.length % 5 === 0) console.log(polygonsIndex.length)
 
+        let baseIndex;
         if (touching.length > 0) {
-            var baseIndex = touching[Math.floor(Math.random() * touching.length)]
-            polygonsIndex = polygonsIndex.filter((v) => v !== baseIndex)
+            baseIndex = touching[Math.floor(Math.random() * touching.length)]
+            polygonsIndex = polygonsIndex.filter(v => v !== baseIndex)
         } else {
-            var baseIndex = polygonsIndex.splice(Math.floor(Math.random() * polygonsIndex.length), 1)[0]
+            baseIndex = polygonsIndex.splice(Math.floor(Math.random() * polygonsIndex.length), 1)[0]
         }
 
         let polygonIndexes = [baseIndex]
@@ -203,17 +302,17 @@ function makeAndMergeTiles(numPoints, width, height) {
         let isLand = isLandPoint(points[baseIndex])
         let numPolys = Math.floor(Math.random() * (isLand ? 15 : 30)) + 8
 
-        touching = [...voronoi.neighbors(baseIndex)].filter((value) => { return contains(polygonsIndex, value) })
+        touching = [...voronoi.neighbors(baseIndex)].filter(v => contains(polygonsIndex, v))
 
         for (let nPoly = 0; nPoly < numPolys; nPoly++) {
             if (touching.length < 1) break
 
             let nextIndex = touching[0]
             if (touching.length > 1) {
-                let nextPerimeter = getPerimeterFromPolys(basePolygon, polygons[nextIndex])
+                let nextPerimeter = getPerimeterToAreaRatio(basePolygon, polygons[nextIndex])
                 for (let i = 1; i < Math.min(touching.length, isLand ? 3 : touching.length); i++) {
                     let tmpI = touching[i]
-                    let tmpPerimeter = getPerimeterFromPolys(basePolygon, polygons[tmpI])
+                    let tmpPerimeter = getPerimeterToAreaRatio(basePolygon, polygons[tmpI])
 
                     if (tmpPerimeter === Number.MAX_VALUE) {
                         touching.splice(tmpI, 1)
@@ -257,56 +356,16 @@ function makeAndMergeTiles(numPoints, width, height) {
                 isOcean: !isLand, 
                 color: (!isLand ? "blue" : "green"), 
                 center: getMiddlestPoint(polygonIndexes.map((v) => points[v])),
-                name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : "Ocean"
+                name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : ("Ocean " + (oceanCounter+= 1))
             },
             id: polygonsIndex.length
         })
+        
     }
     return mapTiles
 }
 
-function generateRegions(mapTiles, neighborMap) {
-    var tiles = mapTiles.map((v, i) => [v,i]).filter((v) => !v[0].data.isOcean).map((v) => v[1])
-    var regions = []
-
-    while (tiles.length > 0) {
-        let baseTile = tiles.splice(Math.floor(Math.random() * tiles.length), 1)[0]
-        let basePoly = tiles[baseTile].polygon
-        let touching = neighborMap.get(baseTile).filter((v) => tiles.includes(v))
-        let numTiles = Math.floor(Math.random() * 6) + 5
-        let region = {
-            tiles: [baseTile],
-            name: names.splice(Math.floor(Math.random() * names.length), 1)[0],
-            color: `#${Math.floor(Math.random() * 256).toString(16)}${Math.floor(Math.random() * 256).toString(16)}${Math.floor(Math.random() * 256).toString(16)}`
-        }
-
-        for (let i = 0; i < numTiles; i++) {
-            if (touching.length === 0) break
-            let perimeters = touching.map((v) => getPerimeterFromPolys(basePoly, mapTiles[v].polygon))
-            let smallestI = touching[perimeters.indexOf(Math.min(...perimeters))]
-            if (smallestI === Number.MAX_VALUE) break
-
-            region.tiles.push(smallestI)
-            tiles.splice(tiles.indexOf(smallestI), 1)
-            touching.push(...mapTiles.get(smallestI).filter((v) => !v.data.isOcean && tiles.includes(v)))
-        }
-
-        if (region.tiles.length === 1) {
-            if (allIsolatedTiles(tiles, neighborMap)) {
-                let annexedTiles = regions.map((v) => v.tiles).flat()
-
-                for (let tile of tiles) {
-
-                }
-            }
-        }
-    }
-
-}
-
-// function 
-
-function allIsolatedTiles(tiles, neighborMap) {
+function allIsolatedTiles(tiles, neighborMap) {   // May be used later for spawn points
     for (let tile of tiles) {
         if (neighborMap.get(tile).filter((v) => tiles.includes(v)).length > 0) return false
     }
@@ -317,10 +376,12 @@ function isLandPoint(point) {
     return noise(point[0] / 100, point[1] / 100, 0) > 0.5
 }
 
-function getPerimeterFromPolys(poly1, poly2) {
+function getPerimeterToAreaRatio(poly1, poly2) {
     assertNot(poly1, undefined); assertNot(poly2, undefined)
     try {
-        return assertNot(perimeter(combine(poly1, poly2)), undefined)
+        var poly = combine(poly1, poly2)
+        return assertNot((perimeter(poly) ** 2) / area(polygon([poly])), undefined)
+        // return assertNot(perimeter(poly), undefined)
     } catch (e) {
         if (e instanceof IsEnclaveError || e instanceof OnlyOneConnectingPointError) {
             return Number.MAX_VALUE
@@ -359,7 +420,6 @@ function combine(poly1, poly2) {
         var realPoly1 = polygon([poly1])
         var realPoly2 = polygon([poly2])
     } catch (e) {
-        console.log(poly1, poly2)
         throw e
     }
     var uPoly = union(realPoly1, realPoly2)
@@ -376,7 +436,6 @@ function contains(arr, value) {
         }
         return false
     } catch (e) {
-        console.log(arr, value)
         throw e
     }
 }
@@ -392,4 +451,23 @@ function getMiddlestPoint(points) {
 
     points.sort((a, b) => (Math.abs(a[0] - averageX) - Math.abs(b[0] - averageX)) + (Math.abs(a[1] - averageY) - Math.abs(b[1] - averageY)))
     return points[0]
+}
+
+function numToHexColor(arr, random=false, wiggle=0) {
+    if (random) {
+        arr = (new Array(3)).map(Math.floor(Math.random() * 256))
+    }
+
+    arr = arr.map(v =>  clamp(v + Math.ceil((Math.random() * wiggle) - wiggle / 2), 0, 255))
+
+    return '#' + arr.map(zeroPadHex).join("")
+}
+
+function clamp(num, min, max) {
+    return Math.max(min, Math.min(max, num))
+}
+
+function zeroPadHex(num) {
+    var s = num.toString(16)
+    return s.length === 1? '0' + s : s 
 }

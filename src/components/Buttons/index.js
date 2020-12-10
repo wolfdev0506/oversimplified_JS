@@ -7,7 +7,7 @@ export const SandboxButton = (props) => (
             Sandbox Mode
         </Link>
     </div>
-);
+)
 
 export const HelpButton = (props) => (
     <div className="col btn-container">
@@ -15,7 +15,7 @@ export const HelpButton = (props) => (
         How to Play
       </Link>
     </div>
-);
+)
 
 export const HomeButton = (props) => (
   <div className="col btn-container">
@@ -23,12 +23,20 @@ export const HomeButton = (props) => (
       Back to Home
     </Link>
   </div>
-);
+)
 
 export const LobbyButton = (props) => (
   <div className="col btn-container">
     <Link to="/lobby" className="btn btn-primary">
       Game Lobby
+    </Link>
+  </div>
+)
+
+export const GenerateMapButton = (props) => (
+  <div className="col btn-container">
+    <Link to="/generate" className="btn btn-primary">
+      Generate Map
     </Link>
   </div>
 )

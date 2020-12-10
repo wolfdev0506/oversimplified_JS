@@ -31,6 +31,13 @@ export const HomePage = (props) => (
         </div>
 
         <div className="row flex-center">
+          <Buttons.GenerateMapButton />
+          <div className="col">
+            <p>Generate Game Board!</p>
+          </div>
+        </div>
+
+        <div className="row flex-center">
           <div className="col" style={{ textAlign: "center" }}>
             <p>
               Created by Max Gordon and Akiva Dienstfrey

@@ -1,46 +1,61 @@
 import React from 'react'
 import {API} from '../../game/api'
-import {createGameBoard, generateGameBoard} from '../../game/game'
-import testData from '../../testData.json'
+import boards from '../../game/boards'
+import * as Buttons from '../Buttons/'
+
+const MapSelect = ({onChange }) => (
+    // stop the page from refreshing upon hitting Enter
+    <form onSubmit={(e) => e.preventDefault()}>
+        <label>Game Map:</label>
+        <select style={{width: '200px'}} onChange={onChange}>
+            <option value={-1}>Random</option>
+            {boards.map(({name}, i) => <option value={i}>{name}</option>)}
+        </select>
+    </form>
+)
 
 export class CreatePage extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {display:""}
-    }
 
-    componentDidMount() {
-        // Start after DOM is rendered
-        setTimeout(() => {
-            console.log("start")
-            this.generateBoard()
-            console.log("done")
-        }, 500)
+        this.options = {
+            map: -1,
+        }
+
+        this.mapSelectChange = this.mapSelectChange.bind(this)
+        this.generateBoard = this.generateBoard.bind(this)
     }
 
     generateBoard() {
-        // const setupData = generateGameBoard()
-        // this.setState({display: JSON.stringify(setupData)})
-        const setupData = testData
+        const setupData = {boardID: this.options.map === -1? Math.floor(Math.random() * boards.length) : this.options.map}
 
         const lobbyAPI = new API(this.props.serverURL)
         lobbyAPI.createMatch({numPlayers: 2, setupData})
-            .then(({matchID}) => window.location.href = `/match/${matchID}${this.props.indirect? "&" + this.props.serverURL : ""}`)
+            .then(({matchID}) => window.location.href = `/match/${matchID}${this.props.indirect? "/" + this.props.serverURL : ""}`)
             .catch(error => console.error(error))
+    }
 
-
+    mapSelectChange(event) {
+        this.options.map = event.target.value
     }
 
     render() {
-        console.log("render")
         return (
-        <div className="row flex-center height100">
-            <div className="col top-space">
-                <h2>Generating Map...</h2>
-                <div className="loader"/>
+        <div className="row flex-center">
+            <div className="vert-col">
+                <h1 className="title">Customize Game</h1>
+                <div className="row">
+                    <MapSelect onChange={this.mapSelectChange}/>
+                </div>
+
+                <div className="row btn-container">
+                    <button className="btn btn-primary" onClick={this.generateBoard}>
+                        Create Game
+                    </button>
+                </div>
+                <Buttons.LobbyButton/>
             </div>
         </div>
-        // this.state.display
         )
     }
 }

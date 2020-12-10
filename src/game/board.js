@@ -1,4 +1,5 @@
 import React from 'react'
+import boards from './boards/'
 import { polygon, booleanPointInPolygon, point } from "@turf/turf"
 
 
@@ -9,7 +10,6 @@ function FieldContent({ field, content, empty }) {
 export class OversimplifiedBoard extends React.Component {
     constructor(props) {
         super(props)
-        console.log("board render")
         this.dragging = false
         this.origin = [0, 0]
         this.state = {
@@ -17,15 +17,17 @@ export class OversimplifiedBoard extends React.Component {
             x: 0,
             y: 0,
             scale: 1,
+            activeOnHover: true
         }
 
         this.hoverColor = "red"
         this.activeColor = "purple"
         
+        this.board = boards[this.props.G.boardID]
         this.canvasScale = 2
-        this.canvasXY = [props.G.width * this.canvasScale, props.G.height * this.canvasScale]
+        this.canvasXY = [this.board.width * this.canvasScale, this.board.height * this.canvasScale]
         this.lastHover = 0
-        this.handleScroll = this.handleScroll.bind(this);
+        this.handleScroll = this.handleScroll.bind(this)
         this.mapRef = React.createRef()
         this.mapOverlayRef = React.createRef()
     }
@@ -53,7 +55,7 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     handleScroll(e) {
-        const scale = clamp(.1, 10, this.state.scale - ((e.deltaY/100) * (this.state.scale/10)))
+        const scale = clamp(.5, 10, this.state.scale - ((e.deltaY/100) * (this.state.scale/10)))
         if (scale !== .1 && scale !== 10) {
             this.setState({
                 scale,
@@ -71,7 +73,7 @@ export class OversimplifiedBoard extends React.Component {
 
     drawMap() {
         const ctx1 = this.mapRef.current.getContext("2d")
-        for (let tile of this.props.G.mapTiles) {
+        for (let tile of this.board.mapTiles) {
             this.renderTile(ctx1, tile)
         }
     }
@@ -80,23 +82,29 @@ export class OversimplifiedBoard extends React.Component {
         const ctx2 = this.mapOverlayRef.current.getContext("2d")
         const xyPoint = point([x / this.canvasScale, y / this.canvasScale]) 
 
-        if (!booleanPointInPolygon(xyPoint, polygon([this.props.G.mapTiles[this.lastHover].polygon]))) {
-            this.expandOutwardUntilTileFound(xyPoint, this.props.G.neighborMap[this.lastHover], [this.lastHover])
+        if (!booleanPointInPolygon(xyPoint, polygon([this.board.mapTiles[this.lastHover].polygon]))) {
+            this.expandOutwardUntilTileFound(xyPoint, this.board.neighborMap[this.lastHover], [this.lastHover])
             this.clearCanvas(ctx2)
 
-            this.renderTile(ctx2, this.props.G.mapTiles[this.lastHover], this.hoverColor)
+            this.renderTile(ctx2, this.board.mapTiles[this.lastHover], this.hoverColor)
+
+            if (this.state.activeOnHover) {
+                this.setState({activeTile: this.lastHover})
+            }
         }
-        this.renderTile(ctx2, this.props.G.mapTiles[this.state.activeTile], this.activeColor)
+
+        if (!this.state.activeOnHover)
+        this.renderTile(ctx2, this.board.mapTiles[this.state.activeTile], this.activeColor)
     }
 
     expandOutwardUntilTileFound(point, current, last) {
         for (let tileI of current) {
-            if (booleanPointInPolygon(point, polygon([this.props.G.mapTiles[tileI].polygon]))) {
+            if (booleanPointInPolygon(point, polygon([this.board.mapTiles[tileI].polygon]))) {
                 this.lastHover = tileI
                 return
             }
         }
-        let next = [...new Set(current.map(v => this.props.G.neighborMap[v]).flat())]
+        let next = [...new Set(current.map(v => this.board.neighborMap[v]).flat())]
         next = next.filter(v => !last.includes(v))
         next = next.filter(v => !current.includes(v))
         if (next.length > 0) {
@@ -106,7 +114,13 @@ export class OversimplifiedBoard extends React.Component {
 
     renderTile(ctx, tile, color, mul=1) {
         ctx.beginPath()
-        tile.polygon.map((v, i) => {if (i === 0) ctx.moveTo(v[0]*this.canvasScale * mul, v[1]*this.canvasScale * mul); else ctx.lineTo(v[0]*this.canvasScale * mul, v[1]*this.canvasScale * mul)})
+        tile.polygon.forEach((v, i) => {
+            if (i === 0) 
+                ctx.moveTo(v[0]*this.canvasScale * mul, v[1]*this.canvasScale * mul) 
+            else 
+                ctx.lineTo(v[0]*this.canvasScale * mul, v[1]*this.canvasScale * mul)
+            }
+        )
         if (color) {
             ctx.strokeStyle = color
             ctx.lineWidth = 5
@@ -132,15 +146,23 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     setActiveTile(i) {
-        this.setState({ activeTile: i })
+        if (this.state.activeTile === i) {
+            this.setState({activeOnHover: !this.state.activeOnHover})
+        }
 
         const ctx2 = this.mapOverlayRef.current.getContext("2d")
         this.clearCanvas(ctx2)
-        this.renderTile(ctx2, this.props.G.mapTiles[i], this.activeColor)
+
+        if (!this.state.activeOnHover && this.state.activeTile === i) {
+            this.renderTile(ctx2, this.board.mapTiles[i], this.hoverColor)  // sets outline to hoverColor if the tile is being unclicked
+        } else {
+            this.renderTile(ctx2, this.board.mapTiles[i], this.activeColor)
+        }
+        this.setState({ activeTile: i })
     }
 
     getBoundingBox(i) {
-        const poly = this.props.G.mapTiles[i].polygon
+        const poly = this.board.mapTiles[i].polygon
         var minX = poly.reduce((prev, current) => prev < current[0] ? prev : current[0])
         var minY = poly.reduce((prev, current) => prev < current[1] ? prev : current[1])
         var maxX = poly.reduce((prev, current) => prev > current[0] ? prev : current[0])
@@ -167,7 +189,8 @@ export class OversimplifiedBoard extends React.Component {
 
     render() {
         var activeI = this.state.activeTile
-        var activeTile = this.props.G.mapTiles[activeI]
+        var activeTile = this.board.mapTiles[activeI]
+        var transform = `translate(${this.state.x}px, ${this.state.y}px) scale(${this.state.scale}, ${this.state.scale})` 
 
         return (
             <>
@@ -189,6 +212,8 @@ export class OversimplifiedBoard extends React.Component {
                     <div className="ui-box" style={{ gridArea: "right" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
                         <FieldContent field="Name" content={activeTile.data.name} />
                         <FieldContent field="Empire" content={activeTile.data.region} empty="Independent" />
+                        <FieldContent field="Empire" content={activeTile.data.biome} />
+                        <FieldContent field="Color" content={activeTile.data.color} />
                     </div>
 
                     <div className="ui-box" style={{ gridArea: "bottom" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
@@ -196,8 +221,8 @@ export class OversimplifiedBoard extends React.Component {
                 </div>
 
                 <div id="mapContainer" onMouseMove={e => this.handleMouseMove(e)} onMouseDown={e => this.setDragging(true, e)} onMouseUp={() => this.setDragging(false)}>
-                    <canvas ref={this.mapRef} width={this.canvasXY[0]} height={this.canvasXY[1]} style={{ transform: `translate(${this.state.x}px, ${this.state.y}px) scale(${this.state.scale}, ${this.state.scale})` }}/>
-                    <canvas ref={this.mapOverlayRef}width={this.canvasXY[0]} height={this.canvasXY[1]} onMouseMove={e => this.handleMouseMove(e, true)} onClick={() => this.setActiveTile(this.lastHover)} style={{ transform: `translate(${this.state.x}px, ${this.state.y}px) scale(${this.state.scale}, ${this.state.scale})`, cursor: "pointer" }}/>
+                    <canvas ref={this.mapRef} width={this.canvasXY[0]} height={this.canvasXY[1]} style={{ transform }}/>
+                    <canvas ref={this.mapOverlayRef} width={this.canvasXY[0]} height={this.canvasXY[1]} onMouseMove={e => this.handleMouseMove(e, true)} onClick={() => this.setActiveTile(this.lastHover)} style={{ transform, cursor: "pointer" }}/>
                 </div>
             </>
         )

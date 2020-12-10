@@ -10,7 +10,7 @@ const InputBox = ({ value, onChange }) => (
     </form>
 )
 
-const MatchList = ({matches}) => (
+const MatchList = ({matches, server}) => (
     <ul className="series outline">
         <li className="bold game-list-item" id="header">
             <h3>ID</h3>
@@ -18,11 +18,17 @@ const MatchList = ({matches}) => (
             <h3>Status</h3>
             <h3>Action</h3>
         </li>
-        {matches.length > 0? matches.map(match => <Match data={match}/>) : <li className="flex-center"><p>No Games Currently Running</p></li>}
+        {matches === "loading"? 
+            <li className="flex-center"><p>Fetching Games...</p></li> : (
+                matches.length > 0? 
+                    matches.map(match => <Match data={match} server={server}/>) : 
+                    <li className="flex-center"><p>No Games Currently Running</p></li>
+            )
+        }
     </ul>
 )
 
-const Match = ({data}) => (
+const Match = ({data, server}) => (
     <li className="game-list-item">
         <p>{data.matchID}</p>
         <p>{getPlayerNums(data.players)[0]}</p>
@@ -31,7 +37,7 @@ const Match = ({data}) => (
             <span/>
             :
             <div className="btn-container">
-                <a className="join-btn btn-primary" href={`/match/${data.matchID}`}>Join</a>
+                <a className="join-btn btn-primary" href={`/match/${data.matchID}${server}`}>Join</a>
             </div>
         }
     </li>
@@ -50,7 +56,7 @@ export class LobbyPage extends React.Component {
         super(props)
         this.state = {
             server: props.serverURL,
-            matches: []
+            matches: "loading"
         }
         this.gamesUpdater = setTimeout(() => this.updateGames(), 1000)
         this.handleInputChange = this.handleInputChange.bind(this)
@@ -60,7 +66,7 @@ export class LobbyPage extends React.Component {
     handleInputChange(event) {
         clearTimeout(this.gamesUpdater)
 
-        this.setState({server:event.target.value})
+        this.setState({server:event.target.value, matches: "loading"})
 
         this.gamesUpdater = setTimeout(() => this.updateGames(), 1000)
     }
@@ -80,9 +86,9 @@ export class LobbyPage extends React.Component {
                     <h1 className="title">Game Lobby</h1>
                     <div className="row btn-container">
                         <InputBox value={this.state.server} onChange={this.handleInputChange} />
-                        <a className="btn btn-primary" href="/create" id="createButton">Create Game</a>
+                        <a className="btn btn-primary" href={this.state.server === this.props.serverURL? "/create" : `/create/${this.state.server}`} id="createButton">Create Game</a>
                     </div>
-                    {this.state.matches === false? "Error reaching game server" : <MatchList matches={this.state.matches} />}
+                    {this.state.matches === false? "Error reaching game server" : <MatchList matches={this.state.matches} server={this.state.server === this.props.serverURL? "" : `/${this.state.server}`} />}
                     <Buttons.HelpButton />
                     <Buttons.HomeButton />
                 </div>
