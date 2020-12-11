@@ -4,8 +4,8 @@ import { Delaunay } from "d3-delaunay";
 import { polygon, union, area } from "@turf/turf"
 import { noise } from '@chriscourses/perlin-noise'
 import names from '../names.json'
+import {WIDTH, HEIGHT} from '../constants'
 
-export const [WIDTH, HEIGHT] = [1600, 900]
 
 export const Oversimplified = {
     name: "Oversimplified",

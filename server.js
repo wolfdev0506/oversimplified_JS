@@ -2,16 +2,17 @@ import { Server } from 'boardgame.io/server'
 import { Oversimplified } from "./src/game/game"
 import path from 'path';
 import serve from 'koa-static';
+import {SERVER_PORT} from './src/constants'
 
 const server = Server({ games: [Oversimplified] });
-const PORT = process.env.PORT || 8000;
+// const PORT = process.env.PORT || 8000;
 
 // Build path relative to the server.js file
 const frontEndAppBuildPath = path.resolve(__dirname, './build');
 server.app.use(serve(frontEndAppBuildPath))
-console.log("PORT: " + PORT)
+console.log("PORT: " + SERVER_PORT)
 
-server.run(PORT, () => {
+server.run(SERVER_PORT, () => {
   server.app.use(
     async (ctx, next) => {
       await serve(frontEndAppBuildPath)(

@@ -1,14 +1,17 @@
+import {SERVER_PORT} from '../constants'
+
+
 const headers = {
     "Accept": "application/json",
     "Content-Type": "application/json",
   };
 
 export class API {
-    constructor(address, port=(process.env.PORT || 8000)) {
+    constructor(address, port=SERVER_PORT) {
         [this.address, this.port] = [address, port]
         this.url = `http${address === "localhost"? "" : "s"}://${address}:${port}`
         this.credentials = address === "localhost"? {} : {credentials: 'include'}
-        console.log("URL: " + this.url, process.env.PORT)
+        console.log("URL:" + this.url)
     }
 
     listGames() {

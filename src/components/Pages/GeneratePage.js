@@ -1,5 +1,6 @@
 import React from 'react'
-import {generateGameBoard, WIDTH, HEIGHT} from '../../game/game'
+import {generateGameBoard} from '../../game/game'
+import {WIDTH, HEIGHT} from '../../constants'
 
 export class GeneratePage extends React.Component {
     constructor(props) {
