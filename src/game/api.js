@@ -9,7 +9,7 @@ const headers = {
 export class API {
     constructor(address, port=SERVER_PORT) {
         [this.address, this.port] = [address, port]
-        this.url = `http${address === "localhost"? "" : "s"}://${address}:${port}`
+        this.url = `${window.location.protocol}://${address}:${port}`
         this.credentials = address === "localhost"? {} : {credentials: 'include'}
         console.log("URL:" + this.url)
     }
