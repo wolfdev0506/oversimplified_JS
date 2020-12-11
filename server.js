@@ -19,10 +19,4 @@ server.run(PORT, () => {
       )
     }
   )
-});
-
-
-// const server = Server({ games: [Oversimplified] });
-// const PORT = parseInt(process.env.PORT) || 8000;
-
-// server.run(PORT);
+})

@@ -15,7 +15,7 @@ export class GeneratePage extends React.Component {
     }
 
     generateBoard() {
-        this.data = generateGameBoard(2000)
+        this.data = generateGameBoard(20000)
         this.drawMap(this.data)
     }
 
