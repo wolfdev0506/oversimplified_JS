@@ -4,7 +4,7 @@ const headers = {
   };
 
 export class API {
-    constructor(address, port=8000) {
+    constructor(address, port=(process.env.PORT || 8000)) {
         [this.address, this.port] = [address, port]
         this.url = `http${address === "localhost"? "" : "s"}://${address}:${port}`
         this.credentials = address === "localhost"? {} : {credentials: 'include'}
