@@ -8,7 +8,7 @@ export class API {
         [this.address, this.port] = [address, port]
         this.url = `http${address === "localhost"? "" : "s"}://${address}:${port}`
         this.credentials = address === "localhost"? {} : {credentials: 'include'}
-        console.log("URL: " + this.url)
+        console.log("URL: " + this.url, process.env.PORT)
     }
 
     listGames() {
