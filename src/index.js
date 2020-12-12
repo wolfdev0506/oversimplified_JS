@@ -5,7 +5,7 @@ import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-d
 import Pages from './components/Pages'
 import Cookies from 'universal-cookie'
 
-console.log(window.location.hostname, process.env)
+
 const serverURL = window.location.hostname
 // const serverURL = "oversimplified.herokuapp.com"
 
