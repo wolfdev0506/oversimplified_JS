@@ -1,6 +1,6 @@
 {
   "name": "oversimplified",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "dependencies": {
     "@chriscourses/perlin-noise": "^1.0.5",
@@ -8,11 +8,10 @@
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
     "@turf/turf": "^5.1.6",
-    "boardgame.io": "^0.40.0",
+    "boardgame.io": "^0.42.2",
     "d3-delaunay": "^5.3.0",
     "esm": "^3.2.25",
     "koa-static": "^5.0.0",
-    "manhattan-voronoi": "git+https://github.com/mlknz/manhattan-voronoi.git#fix_points_nudge",
     "mathjs": "^7.6.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
