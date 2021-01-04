@@ -1,6 +1,7 @@
 import React from 'react'
 import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
+import * as Buttons from '../Buttons/'
 
 export class GeneratePage extends React.Component {
     constructor(props) {
@@ -13,15 +14,22 @@ export class GeneratePage extends React.Component {
         this.mapRef = React.createRef()
         this.showData = this.showData.bind(this)
         this.completionUpdater = this.completionUpdater.bind(this)
+        this.worker = null
     }
 
     componentDidMount() {
         this.generateBoard()
     }
 
+    componentWillUnmount() {
+        if (this.worker) {
+            this.worker.terminate()
+        }
+    }
+
     generateBoard() {
-        const generatorWorker = getTileWorker(this.nTiles, this.tileType)
-        generatorWorker.onmessage = ({data}) => {
+        this.worker = getTileWorker(this.nTiles, this.tileType)
+        this.worker.onmessage = ({data}) => {
             this.data = {...data, done: undefined}
             this.drawMap(this.data)
             if (data.done) {
@@ -30,7 +38,7 @@ export class GeneratePage extends React.Component {
                 this.completionUpdater(data.numPolysLeft, data.numPolys, "Generating Tiles")
             }
         }
-        generatorWorker.onerror = (e) => console.log("ERROR", e)
+        this.worker.onerror = (e) => console.log("ERROR", e)
     }
 
     completionUpdater(tilesLeft, tiles, message, done=false) {
@@ -71,7 +79,7 @@ export class GeneratePage extends React.Component {
         this.setState({data: JSON.stringify(this.data)})
     }
 
-    downloadData() {
+    downloadDataButton() {
         if (this.state.done) {
             const url = window.URL.createObjectURL(new Blob([JSON.stringify(this.data)]))
             return <a className="btn btn-primary" href={url} download={"board.json"}>Download Board</a>
@@ -98,16 +106,19 @@ export class GeneratePage extends React.Component {
 
     render() {
         return (
-            <div className="vert-col btn-container">
-                <canvas style={{position: "relative"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
-                <hr/>
-                <p>{this.state.message}</p>
-                <div className="loading-bar">
-                    <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
+            <div className="row flex-center">
+                <div className="vert-col btn-container">
+                    <h1 className="title">Generate Game Board</h1>
+                    <canvas style={{position: "relative", width: "80%"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+                    <hr/>
+                    <p>{this.state.message}</p>
+                    <div className="loading-bar">
+                        <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
+                    </div>
+                    <hr/>
+                    {this.downloadDataButton()}
+                    <Buttons.HomeButton />
                 </div>
-                <hr/>
-                {this.downloadData()}
-                <p style={{width: "100%"}}>{this.state.data}</p>
             </div>
         )
     }
