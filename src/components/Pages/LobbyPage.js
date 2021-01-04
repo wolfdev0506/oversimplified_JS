@@ -6,7 +6,7 @@ const InputBox = ({ value, onChange }) => (
     // stop the page from refreshing upon hitting Enter
     <form onSubmit={(e) => e.preventDefault()}>
         <label>Game Server:</label>
-        <input type="text" placeholder="Web Address" onChange={onChange} value={value}/>
+        <input style={{width: "400px"}} type="text" placeholder="Web Address" onChange={onChange} value={value}/>
     </form>
 )
 
@@ -77,6 +77,10 @@ export class LobbyPage extends React.Component {
             .then(({matches}) => this.setState({"matches": matches}))
             .then(() => this.gamesUpdater = setTimeout(() => this.updateGames(), 2000))
             .catch(reason => {console.error(reason); this.setState({matches: false})})
+    }
+
+    componentWillUnmount() {
+        clearTimeout(this.gamesUpdater)
     }
 
     render() {

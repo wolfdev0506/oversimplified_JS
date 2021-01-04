@@ -5,6 +5,7 @@ $bg-color: #def2f1;
 $text-color-accent: #17252a;
 $text-color: #535353;
 $muted-color: #7a7a7a;
+$light-gray: #a4aaac;
 
 $main-accent: #3aafa9;
 $dark-accent: #2b7a78;
@@ -201,6 +202,15 @@ li p, li h3 {
     font-size: 1rem;
     background-color: rgba($main-accent, 0.4);
 
+    &:disabled {
+        background-color: $light-gray;
+        cursor: not-allowed;
+
+        &::before {
+            content: none;
+        }
+    }
+
     &:hover {
         &::before {
             height: 100%;
@@ -221,6 +231,7 @@ li p, li h3 {
         transform: scaleX(0.75);
     }
 }
+
 
 .title {
     text-align: center;
@@ -390,3 +401,20 @@ li p, li h3 {
 .hidden {
     display: none;
 }
+
+div.loading-bar {
+    width: 500px;
+    height: 25px;
+    border-radius: 20px;
+    background-color: rgba($main-accent, 0.4);
+    overflow: hidden;
+
+    div {
+        position: relative;
+        left: 0;
+        height: 100%;
+        background-color: $main-accent;
+        border-radius: inherit;
+    }
+}
+

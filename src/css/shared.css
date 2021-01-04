@@ -204,6 +204,15 @@ li p, li h3 {
   background-color: rgba(58, 175, 169, 0.4);
 }
 
+.btn-primary:disabled {
+  background-color: #a4aaac;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled::before {
+  content: none;
+}
+
 .btn-primary:hover::before {
   height: 100%;
   -webkit-transform: scaleX(1);
@@ -431,4 +440,20 @@ li p, li h3 {
 
 .hidden {
   display: none;
+}
+
+div.loading-bar {
+  width: 500px;
+  height: 25px;
+  border-radius: 20px;
+  background-color: rgba(58, 175, 169, 0.4);
+  overflow: hidden;
+}
+
+div.loading-bar div {
+  position: relative;
+  left: 0;
+  height: 100%;
+  background-color: #3aafa9;
+  border-radius: inherit;
 }

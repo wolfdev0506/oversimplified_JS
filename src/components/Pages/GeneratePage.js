@@ -1,14 +1,18 @@
 import React from 'react'
-import {generateGameBoard} from '../../game/game'
+import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 
 export class GeneratePage extends React.Component {
     constructor(props) {
         super(props)
         this.canvasScale = 1
+        this.nTiles = 2000 
+        this.tileType = "relaxed"
+        this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false}
         this.data = {width: WIDTH, height: HEIGHT}
-        // this.state = {display:"loading", data: {mapTiles: []}}
         this.mapRef = React.createRef()
+        this.showData = this.showData.bind(this)
+        this.completionUpdater = this.completionUpdater.bind(this)
     }
 
     componentDidMount() {
@@ -16,8 +20,39 @@ export class GeneratePage extends React.Component {
     }
 
     generateBoard() {
-        this.data = generateGameBoard(20000)
+        const generatorWorker = getTileWorker(this.nTiles, this.tileType)
+        generatorWorker.onmessage = ({data}) => {
+            this.data = {...data, done: undefined}
+            this.drawMap(this.data)
+            if (data.done) {
+                this.createMap()
+            } else {
+                this.completionUpdater(data.numPolysLeft, data.numPolys, "Generating Tiles")
+            }
+        }
+        generatorWorker.onerror = (e) => console.log("ERROR", e)
+    }
+
+    completionUpdater(tilesLeft, tiles, message, done=false) {
+        this.setState({tiles, tilesLeft, message, done})
+    }
+
+    createMap() {    
+        this.completionUpdater(0, 1, "Generating Touch Map")
+        this.data.neighborMap = generateTouchMap(this.data.mapTiles)
+
+        this.completionUpdater(0, 1, "Cleaning up Tiles");
+        [this.data.mapTiles, this.data.neighborMap] = merge1PolyTiles(this.data.mapTiles, this.data.neighborMap)
         this.drawMap(this.data)
+
+        this.completionUpdater(0, 1, "Assigning Biomes")
+        this.data.mapTiles = assignBiomes(this.data.mapTiles, this.data.neighborMap)
+        this.drawMap(this.data)
+
+        this.completionUpdater(0, 1, "Finishing")
+        this.data.neighborMap = mapToObject(this.data.neighborMap)
+
+        this.completionUpdater(0, 1, "Done!", true)
     }
 
     drawMap(data) {
@@ -29,6 +64,17 @@ export class GeneratePage extends React.Component {
                 console.log("called")
             }
             this.renderTile(ctx1, tile)
+        }
+    }
+
+    showData() {
+        this.setState({data: JSON.stringify(this.data)})
+    }
+
+    downloadData() {
+        if (this.state.done) {
+            const url = window.URL.createObjectURL(new Blob([JSON.stringify(this.data)]))
+            return <a className="btn btn-primary" href={url} download={"board.json"}>Download Board</a>
         }
     }
 
@@ -51,10 +97,18 @@ export class GeneratePage extends React.Component {
     }
 
     render() {
-        // return this.state.display
-        // {this.state.data.mapTiles.map(this.toPath)}
         return (
-            <canvas ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+            <div className="vert-col btn-container">
+                <canvas style={{position: "relative"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+                <hr/>
+                <p>{this.state.message}</p>
+                <div className="loading-bar">
+                    <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
+                </div>
+                <hr/>
+                {this.downloadData()}
+                <p style={{width: "100%"}}>{this.state.data}</p>
+            </div>
         )
     }
 }

@@ -9,7 +9,11 @@ const MapSelect = ({onChange }) => (
         <label>Game Map:</label>
         <select style={{width: '200px'}} onChange={onChange}>
             <option value={-1}>Random</option>
-            {boards.map(({name}, i) => <option value={i}>{name}</option>)}
+            {Object.keys(boards).map(v => 
+                <optgroup label={v}>
+                    {boards[v].map(({name}, i) => <option value={`${[v, i]}`}>{name}</option>)}
+                </optgroup>
+            )}
         </select>
     </form>
 )
@@ -19,15 +23,22 @@ export class CreatePage extends React.Component {
         super(props)
 
         this.options = {
-            map: -1,
+            boardID: -1,
         }
 
         this.mapSelectChange = this.mapSelectChange.bind(this)
         this.generateBoard = this.generateBoard.bind(this)
     }
 
+    getRandBoard() {
+        var boardList = Object.keys(boards).map(v => 
+                boards[v].map((_, i) => [v, i])
+        ).flat()
+        return boardList[Math.floor(Math.random() * boardList.length)]
+    }
+
     generateBoard() {
-        const setupData = {boardID: this.options.map === -1? Math.floor(Math.random() * boards.length) : this.options.map}
+        const setupData = {boardID: this.options.boardID === -1? this.getRandBoard() : JSON.parse(this.options.boardID)}
 
         const lobbyAPI = new API(this.props.serverURL)
         lobbyAPI.createMatch({numPlayers: 2, setupData})
@@ -36,7 +47,7 @@ export class CreatePage extends React.Component {
     }
 
     mapSelectChange(event) {
-        this.options.map = event.target.value
+        this.options.boardID = event.target.value
     }
 
     render() {
