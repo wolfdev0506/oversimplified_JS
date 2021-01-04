@@ -1,7 +1,7 @@
 import { Delaunay } from "d3-delaunay";
 import { noise } from '@chriscourses/perlin-noise'
 import names from '../../src/names.json'
-import { getPerimeterToAreaRatio, combine } from'./generationUtils'
+import { getPerimeterToAreaRatio, combine, IsEnclaveError, OnlyOneConnectingPointError } from'./generationUtils'
 
 
 function makeAndMergeTiles(points, width, height) {
@@ -14,9 +14,9 @@ function makeAndMergeTiles(points, width, height) {
     var oceanCounter = 0
 
     while (polygonsIndex.length > 0) {
-        if (polygonsIndex.length % 10 === 0) {
+        if (polygonsIndex.length % 2 === 0) {
             console.log(polygonsIndex.length)
-            postMessage({done: false, numPolysLeft: polygonsIndex.length, numPolys: points.length})
+            postMessage({done: false, numPolysLeft: polygonsIndex.length, numPolys: points.length, width, height, mapTiles})
         } 
         [polygonsIndex, touching, oceanCounter] = nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, points, voronoi)
     }
@@ -129,20 +129,8 @@ function contains(arr, value) {
     }
 }
 
-class OnlyOneConnectingPointError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "OnlyOneConnectingPointError"
-    }
-}
-class IsEnclaveError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "IsEnclaveError"
-    }
-}
-
 onmessage = (e) => {
-    console.log("RUNNING" + e.data);
-    postMessage("TESTING");
+    const {points, height, width} = e.data;
+    const mapTiles = makeAndMergeTiles(points, width, height);
+    postMessage({done: true, mapTiles, height, width});
 };

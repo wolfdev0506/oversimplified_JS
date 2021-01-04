@@ -64,13 +64,13 @@ export function perimeter(poly) {
     return currentDistance
 }
 
-class OnlyOneConnectingPointError extends Error {
+export class OnlyOneConnectingPointError extends Error {
     constructor(message) {
         super(message)
         this.name = "OnlyOneConnectingPointError"
     }
 }
-class IsEnclaveError extends Error {
+export class IsEnclaveError extends Error {
     constructor(message) {
         super(message)
         this.name = "IsEnclaveError"

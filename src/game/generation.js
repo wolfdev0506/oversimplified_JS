@@ -38,7 +38,7 @@ function runTilesWorker(points, width, height) {
     return worker
 }
 
-function assignBiomes(mapTiles, neighborMap) {
+export function assignBiomes(mapTiles, neighborMap) {
     // const resources = ["coal", "iron", "lumber", "stone", "food", "oil"]
     const colorVariation = 30
 
@@ -102,7 +102,7 @@ function pickBiome(biomes, biome50) {
     throw Error("pickBiome didn't pick a biome")
 }
 
-function merge1PolyTiles(mapTiles, neighborMap) {
+export function merge1PolyTiles(mapTiles, neighborMap) {
     var onePolyTilesIndexes = [...neighborMap.keys()].filter(v => [1, 2, 3].includes(mapTiles[v].points.length))
     var validOnePolyTiles = onePolyTilesIndexes.filter(v => neighborMap.get(v).filter(v2 => mapTiles[v2].data.isOcean === mapTiles[v].data.isOcean).length > 0)
     var dontFit = []
@@ -158,7 +158,7 @@ function merge1PolyTiles(mapTiles, neighborMap) {
     return [mapTiles, neighborMap]
 }
 
-function generateTouchMap(mapTiles) {
+export function generateTouchMap(mapTiles) {
     var neighborMap = new Map()
     var smallNeighborMap = new Map()
     for (var i = 0; i < mapTiles.length; i++) {

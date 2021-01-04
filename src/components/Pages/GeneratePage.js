@@ -1,5 +1,5 @@
 import React from 'react'
-import {getTileWorker, makeBoardFromTiles} from '../../game/generation';
+import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 
 export class GeneratePage extends React.Component {
@@ -7,8 +7,8 @@ export class GeneratePage extends React.Component {
         super(props)
         this.canvasScale = 1
         this.nTiles = 2000 
-        this.tileType = "hex"
-        this.state = {data: "", tilesLeft: 1, tiles: 1}
+        this.tileType = "relaxed"
+        this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false}
         this.data = {width: WIDTH, height: HEIGHT}
         // this.state = {display:"loading", data: {mapTiles: []}}
         this.mapRef = React.createRef()
@@ -18,12 +18,7 @@ export class GeneratePage extends React.Component {
     }
 
     componentDidMount() {
-        setTimeout(() => {console.log("start");this.generateBoard();console.log("end")}, 1000)
-
-        // this.worker.postMessage([this.nTiles, this.tileType])
-        // this.worker.onmessage = (e) => {
-        //     this.setState(e.data)
-        // }
+        this.generateBoard()
     }
 
     // componentWillUnmount() {
@@ -34,20 +29,37 @@ export class GeneratePage extends React.Component {
         // this.data = generateGameBoard(this.nTiles, this.tileType, this.completionUpdater)
         const generatorWorker = getTileWorker(this.nTiles, this.tileType)
         generatorWorker.onmessage = ({data}) => {
-            console.log("MESSAGE RECEIVED", data)
+            this.data = {...data, done: undefined}
+            this.drawMap(this.data)
             if (data.done) {
-                this.data = {...data, done: undefined}
-                this.completionUpdater(1, 1)
-                this.drawMap(this.data)
+                this.createMap()
             } else {
-                this.completionUpdater(data.numPolysLeft, data.numPolys)
+                this.completionUpdater(data.numPolysLeft, data.numPolys, "Generating Tiles")
             }
         }
         generatorWorker.onerror = (e) => console.log("ERROR", e)
     }
 
-    completionUpdater(tiles, tilesLeft) {
-        this.setState({tiles, tilesLeft})
+    completionUpdater(tilesLeft, tiles, message, done=false) {
+        this.setState({tiles, tilesLeft, message, done})
+    }
+
+    createMap() {    
+        this.completionUpdater(0, 1, "Generating Touch Map")
+        this.data.neighborMap = generateTouchMap(this.data.mapTiles)
+
+        this.completionUpdater(0, 1, "Cleaning up Tiles");
+        [this.data.mapTiles, this.data.neighborMap] = merge1PolyTiles(this.data.mapTiles, this.data.neighborMap)
+        this.drawMap(this.data)
+
+        this.completionUpdater(0, 1, "Assigning Biomes")
+        this.data.mapTiles = assignBiomes(this.data.mapTiles, this.data.neighborMap)
+        this.drawMap(this.data)
+
+        this.completionUpdater(0, 1, "Finishing")
+        this.data.neighborMap = mapToObject(this.data.neighborMap)
+
+        this.completionUpdater(0, 1, "Done!", true)
     }
 
     drawMap(data) {
@@ -64,6 +76,13 @@ export class GeneratePage extends React.Component {
 
     showData() {
         this.setState({data: JSON.stringify(this.data)})
+    }
+
+    downloadData() {
+        if (this.state.done) {
+            const url = window.URL.createObjectURL(new Blob([JSON.stringify(this.data)]))
+            return <a className="btn btn-primary" href={url} download={"board.json"}>Download Board</a>
+        }
     }
 
     renderTile(ctx, tile, color) {
@@ -89,11 +108,12 @@ export class GeneratePage extends React.Component {
             <div className="vert-col btn-container">
                 <canvas style={{position: "relative"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
                 <hr/>
-                <p>Done {100 - (100*this.state.tilesLeft/this.state.tiles)}%</p>
+                <p>{this.state.message}</p>
+                <div className="loading-bar">
+                    <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
+                </div>
                 <hr/>
-                <button className="btn btn-primary" onClick={this.showData}>
-                    Copy Data
-                </button>
+                {this.downloadData()}
                 <p style={{width: "100%"}}>{this.state.data}</p>
             </div>
         )
