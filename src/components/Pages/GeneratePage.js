@@ -10,23 +10,16 @@ export class GeneratePage extends React.Component {
         this.tileType = "relaxed"
         this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false}
         this.data = {width: WIDTH, height: HEIGHT}
-        // this.state = {display:"loading", data: {mapTiles: []}}
         this.mapRef = React.createRef()
         this.showData = this.showData.bind(this)
         this.completionUpdater = this.completionUpdater.bind(this)
-        // this.worker = 
     }
 
     componentDidMount() {
         this.generateBoard()
     }
 
-    // componentWillUnmount() {
-    //     this.worker.terminate()
-    // }
-
     generateBoard() {
-        // this.data = generateGameBoard(this.nTiles, this.tileType, this.completionUpdater)
         const generatorWorker = getTileWorker(this.nTiles, this.tileType)
         generatorWorker.onmessage = ({data}) => {
             this.data = {...data, done: undefined}

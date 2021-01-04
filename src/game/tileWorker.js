@@ -15,7 +15,6 @@ function makeAndMergeTiles(points, width, height) {
 
     while (polygonsIndex.length > 0) {
         if (polygonsIndex.length % 2 === 0) {
-            console.log(polygonsIndex.length)
             postMessage({done: false, numPolysLeft: polygonsIndex.length, numPolys: points.length, width, height, mapTiles})
         } 
         [polygonsIndex, touching, oceanCounter] = nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, points, voronoi)

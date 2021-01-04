@@ -30,16 +30,12 @@ export function makeBoardFromTiles(mapTiles) {
 }
 
 function runTilesWorker(points, width, height) {
-    // const worker = new Worker("workers/tileWorker.js", {type: "module"})
     const worker = new Worker()
     worker.postMessage({points, width, height})
-    console.log("POSTED MESSAGE")
-    // console.log()
     return worker
 }
 
 export function assignBiomes(mapTiles, neighborMap) {
-    // const resources = ["coal", "iron", "lumber", "stone", "food", "oil"]
     const colorVariation = 30
 
     const oceanBiomes = {ocean: {chance: 100, moveability: 10, color: [30, 144, 255]}}
