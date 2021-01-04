@@ -23,7 +23,7 @@ export class OversimplifiedBoard extends React.Component {
         this.hoverColor = "red"
         this.activeColor = "purple"
         
-        this.board = boards[this.props.G.boardID]
+        this.board = boards[this.props.G.boardID[0]][this.props.G.boardID[1]]
         this.canvasScale = 2
         this.canvasXY = [this.board.width * this.canvasScale, this.board.height * this.canvasScale]
         this.lastHover = 0
@@ -55,7 +55,7 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     handleScroll(e) {
-        const scale = clamp(.5, 10, this.state.scale - ((e.deltaY/100) * (this.state.scale/10)))
+        const scale = clamp(.3, 10, this.state.scale - ((e.deltaY/100) * (this.state.scale/10)))
         if (scale !== .1 && scale !== 10) {
             this.setState({
                 scale,
@@ -212,7 +212,7 @@ export class OversimplifiedBoard extends React.Component {
                     <div className="ui-box" style={{ gridArea: "right" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
                         <FieldContent field="Name" content={activeTile.data.name} />
                         <FieldContent field="Empire" content={activeTile.data.region} empty="Independent" />
-                        <FieldContent field="Empire" content={activeTile.data.biome} />
+                        <FieldContent field="Biome" content={activeTile.data.biome} />
                         <FieldContent field="Color" content={activeTile.data.color} />
                     </div>
 

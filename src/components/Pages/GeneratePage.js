@@ -1,23 +1,53 @@
 import React from 'react'
-import {generateGameBoard} from '../../game/game'
+import {getTileWorker, makeBoardFromTiles} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 
 export class GeneratePage extends React.Component {
     constructor(props) {
         super(props)
         this.canvasScale = 1
+        this.nTiles = 2000 
+        this.tileType = "hex"
+        this.state = {data: "", tilesLeft: 1, tiles: 1}
         this.data = {width: WIDTH, height: HEIGHT}
         // this.state = {display:"loading", data: {mapTiles: []}}
         this.mapRef = React.createRef()
+        this.showData = this.showData.bind(this)
+        this.completionUpdater = this.completionUpdater.bind(this)
+        // this.worker = 
     }
 
     componentDidMount() {
-        this.generateBoard()
+        setTimeout(() => {console.log("start");this.generateBoard();console.log("end")}, 1000)
+
+        // this.worker.postMessage([this.nTiles, this.tileType])
+        // this.worker.onmessage = (e) => {
+        //     this.setState(e.data)
+        // }
     }
 
+    // componentWillUnmount() {
+    //     this.worker.terminate()
+    // }
+
     generateBoard() {
-        this.data = generateGameBoard(20000)
-        this.drawMap(this.data)
+        // this.data = generateGameBoard(this.nTiles, this.tileType, this.completionUpdater)
+        const generatorWorker = getTileWorker(this.nTiles, this.tileType)
+        generatorWorker.onmessage = ({data}) => {
+            console.log("MESSAGE RECEIVED", data)
+            if (data.done) {
+                this.data = {...data, done: undefined}
+                this.completionUpdater(1, 1)
+                this.drawMap(this.data)
+            } else {
+                this.completionUpdater(data.numPolysLeft, data.numPolys)
+            }
+        }
+        generatorWorker.onerror = (e) => console.log("ERROR", e)
+    }
+
+    completionUpdater(tiles, tilesLeft) {
+        this.setState({tiles, tilesLeft})
     }
 
     drawMap(data) {
@@ -30,6 +60,10 @@ export class GeneratePage extends React.Component {
             }
             this.renderTile(ctx1, tile)
         }
+    }
+
+    showData() {
+        this.setState({data: JSON.stringify(this.data)})
     }
 
     renderTile(ctx, tile, color) {
@@ -51,10 +85,17 @@ export class GeneratePage extends React.Component {
     }
 
     render() {
-        // return this.state.display
-        // {this.state.data.mapTiles.map(this.toPath)}
         return (
-            <canvas ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+            <div className="vert-col btn-container">
+                <canvas style={{position: "relative"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+                <hr/>
+                <p>Done {100 - (100*this.state.tilesLeft/this.state.tiles)}%</p>
+                <hr/>
+                <button className="btn btn-primary" onClick={this.showData}>
+                    Copy Data
+                </button>
+                <p style={{width: "100%"}}>{this.state.data}</p>
+            </div>
         )
     }
 }

@@ -12,7 +12,6 @@ export class API {
         port = address === "localhost"? `:${port}` : ""
         this.url = `${window.location.protocol}//${address}${port}`
         this.credentials = address === "localhost"? {} : {credentials: 'include'}
-        console.log("URL:" + this.url)
     }
 
     listGames() {
