@@ -1,31 +1,10 @@
 import { Delaunay } from "d3-delaunay";
-import { polygon, union, area } from "@turf/turf"
-import { noise } from '@chriscourses/perlin-noise'
-import names from '../../src/names.json'
 import {WIDTH, HEIGHT} from '../../src/constants'
+import { getPerimeterToAreaRatio, combine, perimeter } from'./generationUtils'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!./tileWorker'
 
-
-class OnlyOneConnectingPointError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "OnlyOneConnectingPointError"
-    }
-}
-class IsEnclaveError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "IsEnclaveError"
-    }
-}
-class AssertionError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "AssertionError"
-    }
-}
 
 export function getTileWorker(num, type="relaxed") {    
     var points
@@ -49,34 +28,6 @@ export function makeBoardFromTiles(mapTiles) {
     mapTiles = assignBiomes(mapTiles, neighborMap)
     return {width: WIDTH, height: HEIGHT, mapTiles, neighborMap: mapToObject(neighborMap)};
 }
-
-// export function generateGameBoard(num = 100, type="relaxed", donenessCbkFn=(_) => null) {
-//     var [mapTiles, neighborMap] = createGameBoard(num, HEIGHT, WIDTH, type, donenessCbkFn)
-//     return {width: WIDTH, height: HEIGHT, mapTiles, Points: num, neighborMap: mapToObject(neighborMap)}
-// }
-
-// export function createGameBoard(numPoints, height, width, type, donenessCbkFn) {
-//     var points
-//     if (type === "hex") {
-//         points = makeHexVoronoiPoints(numPoints, width, height)
-//     } else if (type === "random") {
-//         points = makeRandomPoints(numPoints, width, height)
-//     } else if (type === "relaxed") {
-//         points = relaxedRandomPoints(numPoints, width, height)
-//     } else {
-//         throw new Error(`type of ${type} is invalid`)
-//     }
-
-//     var mapTilesWorker = runTilesWorker(points, width, height, donenessCbkFn)
-
-//     mapTilesWorker.onmessage
-//     // var mapTiles = makeAndMergeTiles(points, width, height, donenessCbkFn)
-//     var neighborMap = generateTouchMap(mapTiles);  // this semicolon is need bc javascript is stupid
-//     [mapTiles, neighborMap] = merge1PolyTiles(mapTiles, neighborMap)
-//     mapTiles = assignBiomes(mapTiles, neighborMap)
-//     return [mapTiles, neighborMap];
-
-// }
 
 function runTilesWorker(points, width, height) {
     // const worker = new Worker("workers/tileWorker.js", {type: "module"})
@@ -205,7 +156,6 @@ function merge1PolyTiles(mapTiles, neighborMap) {
     mapTiles = mapTiles.map(v => ({...v, touchCellsIndex: undefined, cellsIndex: undefined}))
 
     return [mapTiles, neighborMap]
-
 }
 
 function generateTouchMap(mapTiles) {
@@ -283,107 +233,6 @@ function relaxedRandomPoints(numPoints, width, height, lloydRelax=5) {
     return points
 }
 
-function makeAndMergeTiles(points, width, height, donenessCbkFn) {
-    var voronoi = Delaunay.from(points).voronoi([0, 0, width, height])
-
-    var polygons = [...voronoi.cellPolygons()]
-    var polygonsIndex = polygons.map((_, i) => i)
-    var touching = []
-    var mapTiles = []
-    var oceanCounter = 0
-
-    while (polygonsIndex.length > 0) {
-        if (polygonsIndex.length % 10 === 0) {
-            console.log(polygonsIndex.length)
-            donenessCbkFn(polygonsIndex.length, points.length)
-        } 
-        [polygonsIndex, touching, oceanCounter] = nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, points, voronoi)
-    }
-
-    return mapTiles
-}
-
-function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, points, voronoi) {
-    let baseIndex;
-    if (touching.length > 0) {
-        baseIndex = touching[Math.floor(Math.random() * touching.length)]
-        polygonsIndex = polygonsIndex.filter(v => v !== baseIndex)
-    } else {
-        baseIndex = polygonsIndex.splice(Math.floor(Math.random() * polygonsIndex.length), 1)[0]
-    }
-
-    let polygonIndexes = [baseIndex]
-    let basePolygon = polygons[baseIndex]
-    let isLand = isLandPoint(points[baseIndex])
-    let numPolys
-    if (isLand) {
-        numPolys = Math.floor(Math.random() * 15) + 8
-    } else {
-        numPolys = Math.floor(Math.random() * 30) + 8
-    }
-
-    touching = [...voronoi.neighbors(baseIndex)].filter(v => contains(polygonsIndex, v))
-
-    for (let nPoly = 0; nPoly < numPolys; nPoly++) {
-        if (touching.length < 1) break
-
-        let nextIndex = touching[0]
-        if (touching.length > 1) {
-            let nextPerimeter = getPerimeterToAreaRatio(basePolygon, polygons[nextIndex])
-            for (let i = 1; i < Math.min(touching.length, isLand ? 3 : touching.length); i++) {
-                let tmpI = touching[i]
-                let tmpPerimeter = getPerimeterToAreaRatio(basePolygon, polygons[tmpI])
-
-                if (tmpPerimeter === Number.MAX_VALUE) {
-                    touching.splice(tmpI, 1)
-                    continue
-                } else if (tmpPerimeter < nextPerimeter) {
-                    nextPerimeter = tmpPerimeter
-                    nextIndex = tmpI
-                }
-            }
-        }
-
-        touching = touching.filter((v) => v !== nextIndex)
-        let nextPoly = polygons[nextIndex]
-
-        if (isLand !== isLandPoint(points[nextIndex])) {
-            nPoly--
-            continue
-        }
-
-        try {
-            basePolygon = combine(basePolygon, nextPoly)
-            polygonIndexes.push(nextIndex)
-        } catch (e) {
-            if (e instanceof IsEnclaveError || e instanceof OnlyOneConnectingPointError) {
-                nPoly--
-                continue
-            } else {
-                throw e
-            }
-        }
-        polygonsIndex.splice(polygonsIndex.indexOf(nextIndex), 1)
-        touching.push(...[...voronoi.neighbors(nextIndex)].filter((value) => { return contains(polygonsIndex, value) }))
-    }
-
-    mapTiles.push({
-        polygon: basePolygon,
-        points: polygonIndexes.map((v) => points[v]),
-        cellsIndex: polygonIndexes,
-        touchCellsIndex: [...new Set(polygonIndexes.map((v) => [...voronoi.neighbors(v)]).flat().filter((v) => !(polygonIndexes.includes(v))))],
-        data: { 
-            isOcean: !isLand, 
-            color: (!isLand ? "blue" : "green"), 
-            center: getMiddlestPoint(polygonIndexes.map((v) => points[v])),
-            name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : ("Ocean " + (oceanCounter+= 1))
-        },
-        id: polygonsIndex.length
-    })
-
-    return [polygonsIndex, touching, oceanCounter]
-}
-
 function allIsolatedTiles(tiles, neighborMap) {   // May be used later for spawn points
     for (let tile of tiles) {
         if (neighborMap.get(tile).filter((v) => tiles.includes(v)).length > 0) return false
@@ -391,85 +240,8 @@ function allIsolatedTiles(tiles, neighborMap) {   // May be used later for spawn
     return true
 }
 
-function isLandPoint(point) {
-    return noise(point[0] / 100, point[1] / 100, 0) > 0.5
-}
-
-function getPerimeterToAreaRatio(poly1, poly2) {
-    assertNot(poly1, undefined); assertNot(poly2, undefined)
-    try {
-        var poly = combine(poly1, poly2)
-        return assertNot((perimeter(poly) ** 2) / area(polygon([poly])), undefined)
-        // return assertNot(perimeter(poly), undefined)
-    } catch (e) {
-        if (e instanceof IsEnclaveError || e instanceof OnlyOneConnectingPointError) {
-            return Number.MAX_VALUE
-        } else {
-            throw e
-        }
-    }
-}
-
-function assertNot(val1, val2) {
-    if (JSON.stringify(val1) === JSON.stringify(val2)) {
-        throw new AssertionError(val1 + " == " + val2)
-    } else {
-        return val1
-    }
-}
-
-function distance(xy1, xy2) {
-    return Math.sqrt(Math.pow(xy1[0] - xy2[0], 2) + Math.pow(xy1[1] - xy2[1], 2))
-}
-
-
-function perimeter(poly) {
-    var currentDistance = 0
-    for (var i = 0; i < poly.length - 1; i++) {
-        currentDistance += distance(poly[i], poly[i + 1])
-    }
-    return currentDistance
-}
-
-function combine(poly1, poly2) {
-    if (poly1.slice().filter((v) => { return contains(poly2, v) }).length < 2) {
-        throw new OnlyOneConnectingPointError()
-    }
-    try {
-        var realPoly1 = polygon([poly1])
-        var realPoly2 = polygon([poly2])
-    } catch (e) {
-        throw e
-    }
-    var uPoly = union(realPoly1, realPoly2)
-    if (uPoly.geometry.coordinates.length > 1) {
-        throw new IsEnclaveError()
-    }
-    return uPoly.geometry.coordinates[0]
-}
-
-function contains(arr, value) {
-    try {
-        for (var v of arr) {
-            if (JSON.stringify(value) === JSON.stringify(v)) { return true }
-        }
-        return false
-    } catch (e) {
-        throw e
-    }
-}
-
 function stepDown(nums, stepAt) {
     return nums.filter((v) => v !== stepAt).map((v) => v > stepAt ? --v : v)
-}
-
-function getMiddlestPoint(points) {
-    points = [...points]
-    let averageX = points.map((v) => v[0]).reduce((p, v) => p + v) / points.length
-    let averageY = points.map((v) => v[1]).reduce((p, v) => p + v) / points.length
-
-    points.sort((a, b) => (Math.abs(a[0] - averageX) - Math.abs(b[0] - averageX)) + (Math.abs(a[1] - averageY) - Math.abs(b[1] - averageY)))
-    return points[0]
 }
 
 function numToHexColor(arr, random=false, wiggle=0) {
@@ -507,8 +279,4 @@ export function objectToMap(obj) {
         map.set(parseInt(key), obj[key])
     }
     return map
-}
-
-function sendMessage(tilesLeft, tiles) {
-    postMessage({tilesLeft, tiles})
 }
