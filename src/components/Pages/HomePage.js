@@ -1,6 +1,5 @@
 import React from "react"
 import * as Buttons from '../Buttons/'
-import '../../css/shared.css'
 
 export const HomePage = (props) => (
   <>
