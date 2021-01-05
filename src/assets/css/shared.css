@@ -107,6 +107,10 @@ ul.series li:nth-child(2n) {
   background-color: rgba(58, 175, 169, 0.2);
 }
 
+li {
+  border-radius: 5px;
+}
+
 li p, li h3 {
   margin: 4px 0;
 }

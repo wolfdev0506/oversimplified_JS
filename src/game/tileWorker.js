@@ -87,6 +87,9 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
         touching.push(...[...voronoi.neighbors(nextIndex)].filter((value) => { return contains(polygonsIndex, value) }))
     }
 
+    var num = Math.random() * (4 ** 3)
+    var cityPoints = polygonIndexes.map((v) => points[v])
+
     mapTiles.push({
         polygon: basePolygon,
         points: polygonIndexes.map((v) => points[v]),
@@ -96,7 +99,8 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
             isOcean: !isLand, 
             color: (!isLand ? "blue" : "green"), 
             center: getMiddlestPoint(polygonIndexes.map((v) => points[v])),
-            name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : ("Ocean " + (oceanCounter+= 1))
+            name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : ("Ocean " + (oceanCounter+= 1)),
+            cities: new Array(Math.floor(num ** (1 / 3))).map(() => cityPoints.splice(cityPoints.length * Math.random(), 1)[0])
         },
         id: polygonsIndex.length
     })

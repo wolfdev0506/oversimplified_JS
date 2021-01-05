@@ -3,20 +3,6 @@ import {API} from '../../game/api'
 import boards from '../../game/boards'
 import * as Buttons from '../Buttons/'
 
-const MapSelect = ({onChange }) => (
-    // stop the page from refreshing upon hitting Enter
-    <form onSubmit={(e) => e.preventDefault()}>
-        <label>Game Map:</label>
-        <select style={{width: '200px'}} onChange={onChange}>
-            <option value={-1}>Random</option>
-            {Object.keys(boards).map(v => 
-                <optgroup label={v}>
-                    {boards[v].map(({name}, i) => <option value={`${[v, i]}`}>{name}</option>)}
-                </optgroup>
-            )}
-        </select>
-    </form>
-)
 
 export class CreatePage extends React.Component {
     constructor(props) {
@@ -70,3 +56,17 @@ export class CreatePage extends React.Component {
         )
     }
 }
+
+const MapSelect = ({onChange }) => (
+    <>
+        <label>Game Map:</label>
+        <select style={{width: '200px'}} onChange={onChange}>
+            <option value={-1}>Random</option>
+            {Object.keys(boards).map(v => 
+                <optgroup label={v}>
+                    {boards[v].map(({name}, i) => <option value={`${[v, i]}`}>{name}</option>)}
+                </optgroup>
+            )}
+        </select>
+    </>
+)

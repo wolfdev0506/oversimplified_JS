@@ -2,23 +2,26 @@ import React from 'react'
 import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 import * as Buttons from '../Buttons/'
+import boards from '../../game/boards'
 
 export class GeneratePage extends React.Component {
     constructor(props) {
         super(props)
         this.canvasScale = 1
-        this.nTiles = 2000 
-        this.tileType = "relaxed"
-        this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false}
+        // this.nPoints = 2000 
+        // this.tileType = "relaxed"
+        this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false, generating: false, tileType: "relaxed", boardName: "board", nPoints: 2000}
         this.data = {width: WIDTH, height: HEIGHT}
         this.mapRef = React.createRef()
         this.showData = this.showData.bind(this)
         this.completionUpdater = this.completionUpdater.bind(this)
         this.worker = null
-    }
+        // this.boardName = "board"
 
-    componentDidMount() {
-        this.generateBoard()
+        this.nameChange = this.nameChange.bind(this)
+        this.mapStyleChange = this.mapStyleChange.bind(this)
+        this.nPointsChange = this.nPointsChange.bind(this)
+        this.startGeneration = this.startGeneration.bind(this)
     }
 
     componentWillUnmount() {
@@ -28,7 +31,7 @@ export class GeneratePage extends React.Component {
     }
 
     generateBoard() {
-        this.worker = getTileWorker(this.nTiles, this.tileType)
+        this.worker = getTileWorker(this.state.nPoints, this.state.tileType)
         this.worker.onmessage = ({data}) => {
             this.data = {...data, done: undefined}
             this.drawMap(this.data)
@@ -59,6 +62,9 @@ export class GeneratePage extends React.Component {
 
         this.completionUpdater(0, 1, "Finishing")
         this.data.neighborMap = mapToObject(this.data.neighborMap)
+        this.data.mapName = this.state.boardName
+        this.data.mapStyle = this.state.tileType
+        this.data.nPoints = this.state.nPoints
 
         this.completionUpdater(0, 1, "Done!", true)
     }
@@ -104,22 +110,77 @@ export class GeneratePage extends React.Component {
         ctx.stroke()
     }
 
+    nameChange(event) {
+        this.setState({boardName: event.target.value})
+    }
+
+    mapStyleChange(event) {
+        this.setState({tileType: event.target.value})
+    }
+
+    nPointsChange(event) {
+        this.setState({nPoints: parseInt(event.target.value)})
+    }
+
+    startGeneration() {
+        this.setState({generating: true})
+        this.generateBoard()
+    }
+
     render() {
         return (
             <div className="row flex-center">
                 <div className="vert-col btn-container">
                     <h1 className="title">Generate Game Board</h1>
-                    <canvas style={{position: "relative", width: "80%"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
-                    <hr/>
-                    <p>{this.state.message}</p>
-                    <div className="loading-bar">
-                        <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
-                    </div>
-                    <hr/>
-                    {this.downloadDataButton()}
+                    {
+                        this.state.generating ? (
+                            <>
+                                <canvas style={{position: "relative", width: "80%"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+                                <hr/>
+                                <p>{this.state.message}</p>
+                                <div className="loading-bar">
+                                    <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
+                                </div>
+                                <hr/>
+                                {this.downloadDataButton()}
+                            </>
+                        ) : (
+                            <>
+                                <NameInput value={this.state.boardName} onChange={this.nameChange} />
+                                <MapStyleDropdown onChange={this.mapStyleChange} />
+                                <NumPointsInput value={this.state.nPoints} onChange={this.nPointsChange} />
+                                <button className="btn btn-primary" onClick={this.startGeneration}>Generate Map</button>
+                            </>
+                        )
+                    }
                     <Buttons.HomeButton />
                 </div>
             </div>
         )
     }
 }
+
+const NameInput = ({ value, onChange }) => (
+    <div className="row flex-center">
+        <label>Map Name:</label>
+        <input type="text" placeholder="Name" value={value} onChange={onChange} style={{width: 250}}/>
+    </div>
+)
+
+const MapStyleDropdown = ({ onChange }) => (
+    <div className="row flex-center">
+        <label>Map Style:</label>
+        <select onChange={onChange} style={{width: 250}}>
+            {Object.keys(boards).map(v => 
+                <option value={v}>{v}</option>
+            )}
+        </select>
+    </div>
+)
+
+const NumPointsInput = ({ value, onChange}) => (
+    <div className="row flex-center">
+        <label>Base Points:</label>
+        <input type="number" min="100" onChange={onChange} value={value} style={{width: 250}}/>
+    </div>
+)
