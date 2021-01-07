@@ -2,21 +2,23 @@ import React from 'react'
 import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 import * as Buttons from '../Buttons/'
-import boards from '../../game/boards'
+import city from '../../assets/city.png'
+import BoardFetcher from '../../game/BoardFetcher'
+
+const cityImg = new Image()
+cityImg.src = city
 
 export class GeneratePage extends React.Component {
     constructor(props) {
         super(props)
         this.canvasScale = 1
-        // this.nPoints = 2000 
-        // this.tileType = "relaxed"
-        this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false, generating: false, tileType: "relaxed", boardName: "board", nPoints: 2000}
+        this.state = {data: "", tilesLeft: 1, tiles: 1, message: "Starting", done: false, generating: false, tileType: "relaxed", boardName: "board", nPoints: 2000, boardsLoaded: false}
         this.data = {width: WIDTH, height: HEIGHT}
         this.mapRef = React.createRef()
         this.showData = this.showData.bind(this)
         this.completionUpdater = this.completionUpdater.bind(this)
         this.worker = null
-        // this.boardName = "board"
+        this.boardFetcher = new BoardFetcher()
 
         this.nameChange = this.nameChange.bind(this)
         this.mapStyleChange = this.mapStyleChange.bind(this)
@@ -28,6 +30,11 @@ export class GeneratePage extends React.Component {
         if (this.worker) {
             this.worker.terminate()
         }
+    }
+
+    componentDidMount() {
+        this.boardFetcher.fetchTypes()
+            .then(() => this.setState({boardsLoaded: true}))
     }
 
     generateBoard() {
@@ -62,7 +69,6 @@ export class GeneratePage extends React.Component {
 
         this.completionUpdater(0, 1, "Finishing")
         this.data.neighborMap = mapToObject(this.data.neighborMap)
-        this.data.mapName = this.state.boardName
         this.data.mapStyle = this.state.tileType
         this.data.nPoints = this.state.nPoints
 
@@ -88,17 +94,17 @@ export class GeneratePage extends React.Component {
     downloadDataButton() {
         if (this.state.done) {
             const url = window.URL.createObjectURL(new Blob([JSON.stringify(this.data)]))
-            return <a className="btn btn-primary" href={url} download={"board.json"}>Download Board</a>
+            return <a className="btn btn-primary" href={url} download={this.state.boardName + '.json'}>Download Board</a>
         }
     }
 
     renderTile(ctx, tile, color) {
         ctx.beginPath()
-        tile.polygon.forEach((v, i) => {
+        tile.polygon.forEach((point, i) => {
             if (i === 0) 
-                ctx.moveTo(v[0], v[1]) 
+                ctx.moveTo(point[0] * this.canvasScale, point[1] * this.canvasScale) 
             else 
-                ctx.lineTo(v[0], v[1])
+                ctx.lineTo(point[0] * this.canvasScale, point[1] * this.canvasScale)
             }
         )
         if (color) {
@@ -108,6 +114,11 @@ export class GeneratePage extends React.Component {
         ctx.fillStyle = tile.data.color
         ctx.fill()
         ctx.stroke()
+    
+        for (let [cityX, cityY] of tile.data.cities) {
+            let size = 10
+            ctx.drawImage(cityImg, cityX - size/2, cityY - size/2, size, size)
+        }
     }
 
     nameChange(event) {
@@ -128,31 +139,42 @@ export class GeneratePage extends React.Component {
     }
 
     render() {
+        var content = null;
+        if (this.state.generating) {
+            content =  (
+                <>
+                    <canvas style={{position: "relative", width: "80%"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
+                    <hr/>
+                    <p>{this.state.message}</p>
+                    <div className="loading-bar">
+                        <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
+                    </div>
+                    <hr/>
+                    {this.downloadDataButton()}
+                    <hr/>
+                    <button className="btn btn-primary" onClick={() => window.location.reload()}>New Board</button>
+                </>
+            )
+        } else {
+            content = (
+                <>
+                    <NameInput value={this.state.boardName} onChange={this.nameChange} />
+                    {
+                        this.state.boardsLoaded? // Shows loader while fetching boards
+                            <MapStyleDropdown types={this.boardFetcher.getTypes()} onChange={this.mapStyleChange} />
+                            : <div className="loader"/>
+                    }
+                    <NumPointsInput value={this.state.nPoints} onChange={this.nPointsChange} />
+                    <button className="btn btn-primary" onClick={this.startGeneration}>Generate Map</button>
+                </>
+            )
+        }
+
         return (
             <div className="row flex-center">
                 <div className="vert-col btn-container">
                     <h1 className="title">Generate Game Board</h1>
-                    {
-                        this.state.generating ? (
-                            <>
-                                <canvas style={{position: "relative", width: "80%"}} ref={this.mapRef} width={this.data.width} height={this.data.height}/>
-                                <hr/>
-                                <p>{this.state.message}</p>
-                                <div className="loading-bar">
-                                    <div style={{width: `${100 - (100*this.state.tilesLeft/this.state.tiles)}%`}}></div>
-                                </div>
-                                <hr/>
-                                {this.downloadDataButton()}
-                            </>
-                        ) : (
-                            <>
-                                <NameInput value={this.state.boardName} onChange={this.nameChange} />
-                                <MapStyleDropdown onChange={this.mapStyleChange} />
-                                <NumPointsInput value={this.state.nPoints} onChange={this.nPointsChange} />
-                                <button className="btn btn-primary" onClick={this.startGeneration}>Generate Map</button>
-                            </>
-                        )
-                    }
+                    {content}
                     <Buttons.HomeButton />
                 </div>
             </div>
@@ -167,11 +189,11 @@ const NameInput = ({ value, onChange }) => (
     </div>
 )
 
-const MapStyleDropdown = ({ onChange }) => (
+const MapStyleDropdown = ({ types, onChange }) => (
     <div className="row flex-center">
         <label>Map Style:</label>
         <select onChange={onChange} style={{width: 250}}>
-            {Object.keys(boards).map(v => 
+            {types.map(v => 
                 <option value={v}>{v}</option>
             )}
         </select>
