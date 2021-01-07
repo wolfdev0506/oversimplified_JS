@@ -1,44 +1,32 @@
 import React from 'react'
 import {API} from '../../game/api'
-import boards from '../../game/boards'
 import * as Buttons from '../Buttons/'
+import BoardFetcher from '../../game/BoardFetcher'
 
-const MapSelect = ({onChange }) => (
-    // stop the page from refreshing upon hitting Enter
-    <form onSubmit={(e) => e.preventDefault()}>
-        <label>Game Map:</label>
-        <select style={{width: '200px'}} onChange={onChange}>
-            <option value={-1}>Random</option>
-            {Object.keys(boards).map(v => 
-                <optgroup label={v}>
-                    {boards[v].map(({name}, i) => <option value={`${[v, i]}`}>{name}</option>)}
-                </optgroup>
-            )}
-        </select>
-    </form>
-)
 
 export class CreatePage extends React.Component {
     constructor(props) {
         super(props)
 
         this.options = {
-            boardID: -1,
+            board: -1,
         }
+
+        this.state = {boardsLoaded: false}
 
         this.mapSelectChange = this.mapSelectChange.bind(this)
         this.generateBoard = this.generateBoard.bind(this)
+        this.boardFetcher = new BoardFetcher()
+        this.boardFetcher.fetchNames().then(() => this.setState({boardsLoaded: true}))
     }
 
     getRandBoard() {
-        var boardList = Object.keys(boards).map(v => 
-                boards[v].map((_, i) => [v, i])
-        ).flat()
-        return boardList[Math.floor(Math.random() * boardList.length)]
+        const [boardType, boardName] = this.boardFetcher.getTypeNamePairs()[Math.floor(Math.random() * this.boardFetcher.size())]
+        return {boardType, boardName}
     }
 
     generateBoard() {
-        const setupData = {boardID: this.options.boardID === -1? this.getRandBoard() : JSON.parse(this.options.boardID)}
+        const setupData = {...(this.options.board === -1? this.getRandBoard() : this.options.board)}
 
         const lobbyAPI = new API(this.props.serverURL)
         lobbyAPI.createMatch({numPlayers: 2, setupData})
@@ -47,7 +35,7 @@ export class CreatePage extends React.Component {
     }
 
     mapSelectChange(event) {
-        this.options.boardID = event.target.value
+        this.options.board = JSON.parse(event.target.value)
     }
 
     render() {
@@ -56,7 +44,11 @@ export class CreatePage extends React.Component {
             <div className="vert-col">
                 <h1 className="title">Customize Game</h1>
                 <div className="row">
-                    <MapSelect onChange={this.mapSelectChange}/>
+                    {
+                        this.state.boardsLoaded? // Shows loader while fetching boards
+                            <MapSelect boards={this.boardFetcher.boards} onChange={this.mapSelectChange}/>
+                            : <div className="loader"/>
+                    }
                 </div>
 
                 <div className="row btn-container">
@@ -70,3 +62,17 @@ export class CreatePage extends React.Component {
         )
     }
 }
+
+const MapSelect = ({boards, onChange }) => (
+    <>
+        <label>Game Map:</label>
+        <select style={{width: '200px'}} onChange={onChange}>
+            <option value={-1}>Random Pick</option>
+            {Object.keys(boards).map(t => 
+                <optgroup label={t}>
+                    {boards[t].map((name) => <option value={JSON.stringify({boardType: t, boardName: name})}>{name}</option>)}
+                </optgroup>
+            )}
+        </select>
+    </>
+)

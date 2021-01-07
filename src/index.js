@@ -4,10 +4,10 @@ import * as serviceWorker from './serviceWorker';
 import { Redirect, Route, BrowserRouter as Router, Switch } from "react-router-dom";
 import Pages from './components/Pages'
 import Cookies from 'universal-cookie'
+import './assets/css/shared.css'
 
 
 const serverURL = window.location.hostname
-// const serverURL = "oversimplified.herokuapp.com"
 
 class Website extends React.Component {
     constructor(props) {

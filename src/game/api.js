@@ -27,31 +27,28 @@ export class API {
     }
 
     createMatch(body) {
-        return fetch(this.url + "/games/Oversimplified/create", {...{
-                method: "POST",
-                headers,
-                body: JSON.stringify(body)
-            },
+        return fetch(this.url + "/games/Oversimplified/create", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body),
             ...this.credentials
         }).then(response => response.json())
     }
 
     joinMatch(matchID, body) {
-        return fetch(`${this.url}/games/Oversimplified/${matchID}/join`, {...{
-                method: "POST",
-                headers,
-                body: JSON.stringify(body)
-            },
+        return fetch(`${this.url}/games/Oversimplified/${matchID}/join`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body),
             ...this.credentials
         }).then(response => response.json())
     }
 
     leaveMatch(matchID, body) {
-        return fetch(`${this.url}/games/Oversimplified/${matchID}/leave`, {...{
-                method: "POST",
-                headers,
-                body: JSON.stringify(body)
-            },
+        return fetch(`${this.url}/games/Oversimplified/${matchID}/leave`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body),
             ...this.credentials
         }).then(response => response.json())
     }

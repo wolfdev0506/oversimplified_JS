@@ -31,12 +31,11 @@ export class MatchPage extends React.Component {
         } else {
             this.matchAPI.getMatch(this.matchID)
                 .then(({players}) => this.playerID = this.getIDFromPlayers(players))
-                .then(() => 
-                    this.matchAPI.joinMatch(this.matchID, {playerID: this.playerID, playerName: "bob"})
-                        .then(({playerCredentials}) => {this.credentials = playerCredentials; this.setState({renderBoard: true})})
-                        .catch(reason => {console.error(reason); this.setState({error: true})})
-                )
+                .then(() => this.matchAPI.joinMatch(this.matchID, {playerID: this.playerID, playerName: "bob"}))
+                .then(({playerCredentials}) => this.credentials = playerCredentials)
+                .catch(reason => {console.error(reason); this.setState({error: true})})
                 .then(() => this.cookies.set(this.matchID, {playerID: this.playerID, credentials: this.credentials}), {path: '/'})
+                .then(() => this.setState({renderBoard: true}))
         }
     }
 

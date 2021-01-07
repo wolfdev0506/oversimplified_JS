@@ -4,7 +4,6 @@ import { Client } from 'boardgame.io/react';
 import * as Buttons from '../Buttons/'
 import { Oversimplified } from '../../game/game';
 import { OversimplifiedBoard } from '../../game/board'
-import '../../css/shared.css'
 
 const SandboxClient = Client({
     game: Oversimplified,
