@@ -27,7 +27,7 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
     let baseIndex;
     if (touching.length > 0) {
         baseIndex = touching[Math.floor(Math.random() * touching.length)]
-        polygonsIndex = polygonsIndex.filter(v => v !== baseIndex)
+        polygonsIndex.splice(polygonsIndex.indexOf(baseIndex), 1)
     } else {
         baseIndex = polygonsIndex.splice(Math.floor(Math.random() * polygonsIndex.length), 1)[0]
     }
@@ -35,17 +35,12 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
     let polygonIndexes = [baseIndex]
     let basePolygon = polygons[baseIndex]
     let isLand = isLandPoint(points[baseIndex])
-    let numPolys
-    if (isLand) {
-        numPolys = Math.floor(Math.random() * 15) + 8
-    } else {
-        numPolys = Math.floor(Math.random() * 30) + 8
-    }
+    let numPolys = Math.floor(Math.random() * (isLand? 15 : 30)) + 8
 
-    touching = [...voronoi.neighbors(baseIndex)].filter(v => contains(polygonsIndex, v))
+    touching = [...voronoi.neighbors(baseIndex)].filter(v => polygonsIndex.includes(v))
 
     for (let nPoly = 0; nPoly < numPolys; nPoly++) {
-        if (touching.length < 1) break
+        if (touching.length === 0) break
 
         let nextIndex = touching[0]
         if (touching.length > 1) {
@@ -84,7 +79,7 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
             }
         }
         polygonsIndex.splice(polygonsIndex.indexOf(nextIndex), 1)
-        touching.push(...[...voronoi.neighbors(nextIndex)].filter((value) => { return contains(polygonsIndex, value) }))
+        touching.push(...[...voronoi.neighbors(nextIndex)].filter((value) => polygonsIndex.includes(value)))
     }
 
     var num = Math.floor(Math.random() ** 3 * 4)
@@ -121,19 +116,8 @@ function isLandPoint(point) {
     return noise(point[0] / 100, point[1] / 100, 0) > 0.5
 }
 
-function contains(arr, value) {
-    try {
-        for (var v of arr) {
-            if (JSON.stringify(value) === JSON.stringify(v)) { return true }
-        }
-        return false
-    } catch (e) {
-        throw e
-    }
-}
-
 onmessage = (e) => {
     const {points, height, width} = e.data;
     const mapTiles = makeAndMergeTiles(points, width, height);
     postMessage({done: true, mapTiles, height, width});
-};
+}
