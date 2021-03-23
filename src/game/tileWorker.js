@@ -4,6 +4,9 @@ import names from '../../src/names.json'
 import { getPerimeterToAreaRatio, combine, IsEnclaveError, OnlyOneConnectingPointError } from'./generationUtils'
 
 
+const CONTINENT_SCALE = 250
+
+
 function makeAndMergeTiles(points, width, height) {
     var voronoi = Delaunay.from(points).voronoi([0, 0, width, height])
 
@@ -82,7 +85,7 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
         touching.push(...[...voronoi.neighbors(nextIndex)].filter((value) => polygonsIndex.includes(value)))
     }
 
-    var num = Math.floor(Math.random() ** 3 * 4)
+    var num = Math.floor(Math.random() ** 3 * 3.25)
     var cityPoints = polygonIndexes.map((v) => points[v])
 
     mapTiles.push({
@@ -113,7 +116,7 @@ function getMiddlestPoint(points) {
 }
 
 function isLandPoint(point) {
-    return noise(point[0] / 100, point[1] / 100, 0) > 0.5
+    return noise(point[0] / CONTINENT_SCALE, point[1] / CONTINENT_SCALE, 0) > 0.5
 }
 
 onmessage = (e) => {

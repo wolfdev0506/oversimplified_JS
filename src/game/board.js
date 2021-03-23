@@ -98,6 +98,8 @@ export class OversimplifiedBoard extends React.Component {
         ctx.fill()
         ctx.stroke()
 
+        console.log(tile.data.cities)
+
         for (let [cityX, cityY] of tile.data.cities) {
             let size = 5 * this.canvasScale
             ctx.drawImage(cityImg, ...this.scale(cityX, cityY, size/2, size/2), size, size)
