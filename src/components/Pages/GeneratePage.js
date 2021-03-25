@@ -2,7 +2,7 @@ import React from 'react'
 import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 import * as Buttons from '../Buttons/'
-import city from '../../assets/city.png'
+import city from '../../assets/icons/city.png'
 import BoardFetcher from '../../game/BoardFetcher'
 import {ResourcePieces} from './../../game/gamePieces'
 
@@ -119,7 +119,7 @@ export class GeneratePage extends React.Component {
     
         for (let [cityX, cityY] of tile.data.cities) {
             let size = 10
-            ctx.drawImage(cityImg, cityX - size/2, cityY - size/2, size, size)
+            ctx.drawImage(city, cityX - size/2, cityY - size/2, size, size)
         }
     }
 

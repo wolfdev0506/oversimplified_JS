@@ -1,0 +1,23 @@
+@import 'shared';
+
+ul.resources-list {
+    @extend .series;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 10%;
+    margin: 0;
+}
+
+.resource-list-item {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    column-gap: 20px;
+    border-radius: 5px;
+    padding: 0 10px;
+    height: 100%;
+
+    * {
+        margin: auto 0;
+    }
+}

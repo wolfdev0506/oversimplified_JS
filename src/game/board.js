@@ -1,7 +1,9 @@
 import React from 'react'
 import { polygon, booleanPointInPolygon, point } from "@turf/turf"
 import BoardFetcher from './BoardFetcher'
-import city from '../assets/city.png'
+import city from '../assets/icons/city.png'
+import fighterjet from '../assets/icons/fighterjet.svg'
+import '../assets/scss/board.scss'
 
 const cityImg = new Image()
 cityImg.src = city
@@ -97,8 +99,6 @@ export class OversimplifiedBoard extends React.Component {
         ctx.fillStyle = tile.data.color
         ctx.fill()
         ctx.stroke()
-
-        console.log(tile.data.cities)
 
         for (let [cityX, cityY] of tile.data.cities) {
             let size = 5 * this.canvasScale
@@ -241,6 +241,7 @@ export class OversimplifiedBoard extends React.Component {
                         </div>
 
                         <div className="ui-box" style={{ gridArea: "bottom" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
+                            <ResourcesList resources={this.props.G.hands[this.props.playerID].resources}/>
                         </div>
                     </div>
 
@@ -268,6 +269,27 @@ function FieldContent({ field, content, empty }) {
     return <h3><span className="bold">{field + ":"}</span>{" " + (content ? content : empty)}</h3>
 }
 
+function ResourcesList({ resources }) {
+    return (
+        <ul className="resources-list">
+            {resources.map(([v, n], i) => <Resource name={v} amount={n}/>)}
+        </ul>
+    )
+} 
+
+function Resource({name, amount}) {
+    return (
+        <li className="resource-list-item">
+            <p>{capitalize(name)}</p>
+            <p>{amount}</p>
+        </li>
+    )
+}
+
 function clamp(min, max, num) {
     return Math.min(max, Math.max(num, min))
+}
+
+function capitalize(string) {
+    return string[0].toUpperCase() + string.slice(1);
 }
