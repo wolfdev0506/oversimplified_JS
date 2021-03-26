@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 // import { INVALID_MOVE } from 'boardgame.io/core';
-import {ResourcePieces, ResourceFactoryPieces, TroopFactoryPieces, TroopPieces, StoragePieces} from './gamePieces.js'
+import {ResourcePieces, TroopFactoryPieces, StoragePieces} from './gamePieces.js'
 
 // TODO: Make a second game that acts as the lobby, so that the game "master" can decide when to start the game (assuming it doesn't fill up)
 

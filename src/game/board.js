@@ -223,7 +223,7 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     handleMenuSelect(menuItemIdx) {
-        if (menuItemIdx != this.state.activeMenuItem) {
+        if (menuItemIdx !== this.state.activeMenuItem) {
             this.setState({activeMenuItem: menuItemIdx})
         } else {
             this.setState({activeMenuItem: null})
@@ -295,7 +295,7 @@ function SelectorMenu({hand, width, onClick, activeIdx}) {
         if (hand[i] !== undefined) {
             elements.push(
                 <div className={`selector-box ${activeIdx === i? "active": ""}`} style={{width: `${width}px`}} onClick={() => onClick(i)}>
-                    <img src={GamePieceIcons[hand[i][0].name]}/>
+                    <img src={GamePieceIcons[hand[i][0].name]} alt="pic"/>
                     <p>{`${capitalize(camelCaseToSpaceCase(hand[i][0].name))}: ${hand[i][1]}`}</p>
                 </div>
             )
