@@ -2,7 +2,7 @@ import React from 'react'
 import {getTileWorker, generateTouchMap, merge1PolyTiles, assignBiomes, mapToObject} from '../../game/generation';
 import {WIDTH, HEIGHT} from '../../constants'
 import * as Buttons from '../Buttons/'
-import city from '../../assets/city.png'
+import city from '../../assets/icons/city.png'
 import BoardFetcher from '../../game/BoardFetcher'
 
 const cityImg = new Image()

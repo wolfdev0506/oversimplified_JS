@@ -17,7 +17,6 @@ export class MatchPage extends React.Component {
 
         this.MultiplayerClient = Client({
             game: Oversimplified,
-            numPlayers: 2,
             board: BoardWrapper({leaveMatch: () => this.leaveMatch()}),
             multiplayer: SocketIO({server: this.matchAPI.url}),
             debug: false,

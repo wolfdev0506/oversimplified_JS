@@ -1,0 +1,59 @@
+@import 'shared';
+
+ul.resources-list {
+    @extend .series;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 12%;
+    margin: 0;
+}
+
+.resource-list-item {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    column-gap: 20px;
+    border-radius: 5px;
+    padding: 0 10px;
+    height: 100%;
+
+    * {
+        margin: auto 0;
+    }
+}
+
+.selector-menu {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin: 0 auto;
+    
+    .selector-box {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background-color: rgba($main-accent, 0.2);
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+
+        &:hover {
+            background-color: rgba($main-accent, 0.4);
+        }
+
+        &.active {
+            border: 4px solid $main-accent;
+        }
+
+        img {
+            width: 75%;
+        }
+
+        p {
+            margin: 0;
+        }
+    }
+}
+

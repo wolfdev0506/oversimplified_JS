@@ -1,7 +1,9 @@
 import React from 'react'
 import { polygon, booleanPointInPolygon, point } from "@turf/turf"
 import BoardFetcher from './BoardFetcher'
-import city from '../assets/city.png'
+import city from '../assets/icons/city.png'
+import GamePieceIcons from './GamePieceIcons'
+import '../assets/scss/board.scss'
 
 const cityImg = new Image()
 cityImg.src = city
@@ -19,7 +21,9 @@ export class OversimplifiedBoard extends React.Component {
             y: 0,
             scale: 1,
             activeOnHover: true,
-            boardLoaded: false
+            boardLoaded: false,
+            divWidth: 0,
+            activeMenuItem: null,
         }
 
         this.hoverColor = "red"
@@ -33,6 +37,7 @@ export class OversimplifiedBoard extends React.Component {
         this.mapOverlayRef = React.createRef()
 
         this.handleScroll = this.handleScroll.bind(this)
+        this.handleMenuSelect = this.handleMenuSelect.bind(this)
     }
 
     handleMouseMove(e, isCanvas) {
@@ -77,6 +82,16 @@ export class OversimplifiedBoard extends React.Component {
             .then(() => this.drawMap())
 
         window.addEventListener('wheel', this.handleScroll, {passive: true}) // TODO
+    }
+
+    componentDidUpdate() {
+        if (this.divElement !== undefined) {
+            var newWidth = this.divElement.clientHeight/2
+
+            if (newWidth !== this.state.divWidth) {
+                this.setState({divWidth: newWidth})
+            }
+        }
     }
 
     renderTile(ctx, tile, color) {
@@ -207,6 +222,14 @@ export class OversimplifiedBoard extends React.Component {
             </>)
     }
 
+    handleMenuSelect(menuItemIdx) {
+        if (menuItemIdx !== this.state.activeMenuItem) {
+            this.setState({activeMenuItem: menuItemIdx})
+        } else {
+            this.setState({activeMenuItem: null})
+        }
+    }
+
     render() {
         
         if (this.state.boardLoaded) {
@@ -232,13 +255,14 @@ export class OversimplifiedBoard extends React.Component {
                         </div>
 
                         <div className="ui-box" style={{ gridArea: "right" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
-                            <FieldContent field="Name" content={activeTile.data.name} />
-                            <FieldContent field="Empire" content={activeTile.data.region} empty="Independent" />
-                            <FieldContent field="Biome" content={activeTile.data.biome} />
-                            <FieldContent field="Color" content={activeTile.data.color} />
+                            <TileInfo tileData={activeTile.data}/>
                         </div>
 
-                        <div className="ui-box" style={{ gridArea: "bottom" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
+                        <div className="ui-box" style={{ gridArea: "bottom", display:"flex" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
+                            <ResourcesList resources={this.props.G.hands[this.props.playerID].resources}/>
+                            <div className="selector-menu" ref={(divElement) => {this.divElement = divElement}}>
+                                <SelectorMenu hand={this.props.G.hands[this.props.playerID].hand} width={this.state.divWidth} onClick={this.handleMenuSelect} activeIdx={this.state.activeMenuItem}/>
+                            </div>
                         </div>
                     </div>
 
@@ -262,10 +286,81 @@ export class OversimplifiedBoard extends React.Component {
 
 }
 
+function SelectorMenu({hand, width, onClick, activeIdx}) {
+    hand.sort((a, b) => b[1] - a[1])
+
+    var elements = []
+
+    for (let i = 0; i < 14; i++) {
+        if (hand[i] !== undefined) {
+            elements.push(
+                <div className={`selector-box ${activeIdx === i? "active": ""}`} style={{width: `${width}px`}} onClick={() => onClick(i)}>
+                    <img src={GamePieceIcons[hand[i][0].name]} alt="pic"/>
+                    <p>{`${capitalize(camelCaseToSpaceCase(hand[i][0].name))}: ${hand[i][1]}`}</p>
+                </div>
+            )
+        } else {
+            elements.push(<div className="selector-box" style={{width: `${width}px`}}/>)
+
+        }
+    }
+    return elements
+}
+
 function FieldContent({ field, content, empty }) {
     return <h3><span className="bold">{field + ":"}</span>{" " + (content ? content : empty)}</h3>
 }
 
+function ResourcesList({ resources }) {
+    return (
+        <ul className="resources-list">
+            <li className="bold resource-list-item">
+                <p>Resource</p>
+                <p>Amount</p> 
+            </li>
+            {resources.map(([v, n], i) => <Resource name={v} amount={n}/>)}
+        </ul>
+    )
+} 
+
+function Resource({name, amount}) {
+    return (
+        <li className="resource-list-item">
+            <p>{capitalize(name)}</p>
+            <p>{amount}</p>
+        </li>
+    )
+}
+
+function TileInfo({tileData}) {
+    return (<>
+        <FieldContent field="Name" content={tileData.name} />
+        <FieldContent field="Empire" content={tileData.region} empty="Independent" />
+        <FieldContent field="Biome" content={tileData.biome} />
+        <FieldContent field="Color" content={tileData.color} />
+    </>)
+}
+
 function clamp(min, max, num) {
     return Math.min(max, Math.max(num, min))
+}
+
+function capitalize(string) {
+    return string[0].toUpperCase() + string.slice(1)
+}
+
+function isUpperCase(string) {
+    return string === string.toUpperCase()
+}
+
+function camelCaseToSpaceCase(string) {
+    var finalStr = ""
+    for (const c of string) {
+        if (isUpperCase(c)) {
+            finalStr += ` ${c.toLowerCase()}`
+        } else {
+            finalStr += c
+        }
+    }
+    return finalStr
 }
