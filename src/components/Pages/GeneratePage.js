@@ -4,7 +4,6 @@ import {WIDTH, HEIGHT} from '../../constants'
 import * as Buttons from '../Buttons/'
 import city from '../../assets/icons/city.png'
 import BoardFetcher from '../../game/BoardFetcher'
-import {ResourcePieces} from './../../game/gamePieces'
 
 const cityImg = new Image()
 cityImg.src = city
@@ -25,7 +24,6 @@ export class GeneratePage extends React.Component {
         this.mapStyleChange = this.mapStyleChange.bind(this)
         this.nPointsChange = this.nPointsChange.bind(this)
         this.startGeneration = this.startGeneration.bind(this)
-        console.log(ResourcePieces)
     }
 
     componentWillUnmount() {
@@ -119,7 +117,7 @@ export class GeneratePage extends React.Component {
     
         for (let [cityX, cityY] of tile.data.cities) {
             let size = 10
-            ctx.drawImage(city, cityX - size/2, cityY - size/2, size, size)
+            ctx.drawImage(cityImg, cityX - size/2, cityY - size/2, size, size)
         }
     }
 

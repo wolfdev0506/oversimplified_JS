@@ -104,8 +104,11 @@ export function merge1PolyTiles(mapTiles, neighborMap) {
     var dontFit = []
 
     for (let polyI of validOnePolyTiles) {
+        // eslint-disable-next-line no-loop-func
         let validTouching = neighborMap.get(polyI).filter(v => ![1, 2, 3].includes(mapTiles[v].points.length)).filter(v => mapTiles[v].data.isOcean === mapTiles[polyI].data.isOcean)
+        // eslint-disable-next-line no-loop-func
         let perimeters = validTouching.map(v => getPerimeterToAreaRatio(mapTiles[polyI].polygon, mapTiles[v].polygon))
+        // eslint-disable-next-line no-loop-func
         let perimeterDiffs = perimeters.map((v, i) => v - perimeter(mapTiles[validTouching[i]].polygon))
         let bestFitI = perimeterDiffs.indexOf(Math.min(...perimeterDiffs))
 
@@ -229,12 +232,12 @@ function relaxedRandomPoints(numPoints, width, height, lloydRelax=5) {
     return points
 }
 
-function allIsolatedTiles(tiles, neighborMap) {   // May be used later for spawn points
-    for (let tile of tiles) {
-        if (neighborMap.get(tile).filter((v) => tiles.includes(v)).length > 0) return false
-    }
-    return true
-}
+// function allIsolatedTiles(tiles, neighborMap) {   // May be used later for spawn points
+//     for (let tile of tiles) {
+//         if (neighborMap.get(tile).filter((v) => tiles.includes(v)).length > 0) return false
+//     }
+//     return true
+// }
 
 function stepDown(nums, stepAt) {
     return nums.filter((v) => v !== stepAt).map((v) => v > stepAt ? --v : v)

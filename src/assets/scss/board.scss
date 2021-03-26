@@ -5,7 +5,7 @@ ul.resources-list {
     display: flex;
     flex-direction: column;
     height: 100%;
-    width: 10%;
+    width: 12%;
     margin: 0;
 }
 
@@ -21,3 +21,39 @@ ul.resources-list {
         margin: auto 0;
     }
 }
+
+.selector-menu {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin: 0 auto;
+    
+    .selector-box {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background-color: rgba($main-accent, 0.2);
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+
+        &:hover {
+            background-color: rgba($main-accent, 0.4);
+        }
+
+        &.active {
+            border: 4px solid $main-accent;
+        }
+
+        img {
+            width: 75%;
+        }
+
+        p {
+            margin: 0;
+        }
+    }
+}
+

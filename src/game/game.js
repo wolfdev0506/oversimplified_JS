@@ -62,12 +62,12 @@ function makeHands(playerIDs) {
 
     for (const id of playerIDs) {
         hands[id] = {
-            resources: Object.keys(ResourcePieces).map((v, i) => i === 0 ? [v, 100] : [v, 0]),
+            resources: Object.keys(ResourcePieces).map(v => v === "gold" ? [v, 100] : [v, 0]),
             territory: [],  // list of tile IDs
-            buildings: [{...TroopFactoryPieces.factory, location: "hand"}, {...StoragePieces.warehouse, location: "hand"}],  // list of each building,  {...piece, location, level (possibly)}
+            buildings: [],  // list of each building,  {...piece, location, level (possibly)}
             troops: [],     // list of each group of troops,  {...piece, location, amount, level (possibly)}
+            hand: [[TroopFactoryPieces.factory, 1], [StoragePieces.warehouse, 1]]
         }
     }
-
     return hands
 }
