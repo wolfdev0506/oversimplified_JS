@@ -67,7 +67,7 @@ export const ResourceFactoryPieces = { // I think these should just cost gold
     sawMill: {...new ResourceFactory("sawMill", ["forest"], "lumber")},
     oilDrill: {...new ResourceFactory("oilDrill", ["mountain", "forest", "grassland", "desert", "ocean"], "oil")},
     ironMine: {...new ResourceFactory("ironMine", ["mountain", "forest", "grassland", "desert"], "iron")},
-    quarry: {...new ResourceFactory("quarry", ["mountain", "forest", "grassland", "desert"], "brick")},
+    quarry: {...new ResourceFactory("quarry", ["mountain"], "brick")},
     coalMine: {...new ResourceFactory("coalMine", ["mountain", "forest", "grassland", "desert"], "coal")},
     farm: {...new ResourceFactory("farm", ["grassland"], "food")},
 } 

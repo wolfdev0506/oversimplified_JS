@@ -43,7 +43,7 @@ export function assignBiomes(mapTiles, neighborMap) {
         grassland: {chance: 25, moveability: 10, color: [107, 142, 35]},
         forest: {chance: 25, moveability: 6, color: [0, 100, 0]},
         desert: {chance: 25, moveability: 7, color: [225, 169, 95]},
-        mountain: {chance: 25, moveability: 3, color: [112, 128, 144]}
+        mountain: {chance: 25, moveability: 3, color: [143, 140, 140]}
     }
 
     const tiles = mapTiles.map((_, i) => i)
@@ -57,6 +57,11 @@ export function assignBiomes(mapTiles, neighborMap) {
         let baseBiome = pickBiome(landBiomes)
         let groupBiomes = group.map(v => [v, pickBiome(landBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
         groupBiomes = groupBiomes.concat([[current, baseBiome]])
+        
+        let touching = [...new Set(groupBiomes.map(([idx, bme]) => neighborMap.get(idx)).flat())].filter(idx => !groupBiomes.map(v => v[0]).includes(idx) && landTiles.includes(idx))
+        let touchingBiomes = touching.map(v => [v, pickBiome(landBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
+        
+        groupBiomes = groupBiomes.concat(touchingBiomes)
 
         for (let [i, b] of groupBiomes) {
             mapTiles[i].data = {...landBiomes[b], ...mapTiles[i].data, biome: b, color: numToHexColor(landBiomes[b].color, false, colorVariation)}
@@ -72,13 +77,39 @@ export function assignBiomes(mapTiles, neighborMap) {
         let groupBiomes = group.map(v => [v, pickBiome(oceanBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
         groupBiomes = groupBiomes.concat([[current, baseBiome]])
 
+        let touching = [...new Set(groupBiomes.map(([idx, bme]) => neighborMap.get(idx)).flat())].filter(idx => !groupBiomes.map(v => v[0]).includes(idx) && oceanTiles.includes(idx))
+        let touchingBiomes = touching.map(v => [v, pickBiome(oceanBiomes, baseBiome)]).filter(v => v[1] === baseBiome)
+        
+        groupBiomes = groupBiomes.concat(touchingBiomes)
+
         for (let [i, b] of groupBiomes) {
             mapTiles[i].data = {...oceanBiomes[b], ...mapTiles[i].data, biome: b, color: numToHexColor(oceanBiomes[b].color, false, colorVariation)};
             oceanTiles.splice(oceanTiles.indexOf(i), 1)
         }
     }
 
+    for (let tile of tiles) {
+        let isOceanTile = mapTiles[tile].data.isOcean
+        let touching = neighborMap.get(tile)
+        let touchingIsOcean = touching.map(v => mapTiles[v].data.isOcean)
+        let touchingBiomes = touching.map(v => mapTiles[v].data.biome)
+
+        if (!touchingBiomes.includes(mapTiles[tile].data.biome) && touchingIsOcean.includes(isOceanTile)) {
+            let allTouchBiomes = [...new Set(touchingBiomes)].filter(v => isOceanTile? [...Object.keys(oceanBiomes)].includes(v) : [...Object.keys(landBiomes)].includes(v))
+            let counts = allTouchBiomes.map(v => [v, count(touchingBiomes, v)]).sort((a, b) => b[1] - a[1])
+
+            let newBiome = counts[0][0]
+            let biomeData = isOceanTile? oceanBiomes[newBiome] : landBiomes[newBiome]
+            
+            mapTiles[tile].data = {...biomeData, ...mapTiles[tile].data, biome: newBiome, color: numToHexColor(biomeData.color, false, colorVariation)}
+        }
+    }
+
     return mapTiles
+}
+
+function count(arr, element) {
+    return arr.filter(v => v === element).length
 }
 
 function pickBiome(biomes, biome50) {
