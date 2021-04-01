@@ -43,6 +43,7 @@ svg, canvas {
 
 canvas {
     position: absolute;
+    border-width: 8px;
 }
 
 a {
@@ -51,6 +52,10 @@ a {
 
     &:hover {
         color: $dark-accent;
+    }
+
+    &.bold {
+        color: $main-accent;
     }
 }
 
@@ -419,5 +424,24 @@ div.loading-bar {
         height: 100%;
         background-color: $main-accent;
         border-radius: inherit;
+    }
+}
+
+.home-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+
+    & > div:nth-child(2n) {
+        margin-right: auto;
+    }
+
+    & > div:nth-child(2n + 1) {
+        margin-left: auto;
+    }
+
+    p {
+        margin-top: auto;
+        margin-bottom: auto;
     }
 }

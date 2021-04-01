@@ -98,9 +98,9 @@ export class OversimplifiedBoard extends React.Component {
         ctx.beginPath()
         tile.polygon.forEach((point, i) => {
             if (i === 0) 
-                ctx.moveTo(...this.scale(point[0], point[1])) 
+                ctx.moveTo(...this.scaleToMap(point[0], point[1])) 
             else 
-                ctx.lineTo(...this.scale(point[0], point[1]))
+                ctx.lineTo(...this.scaleToMap(point[0], point[1]))
             }
         )
         if (color) {
@@ -115,11 +115,11 @@ export class OversimplifiedBoard extends React.Component {
 
         for (let [cityX, cityY] of tile.data.cities) {
             let size = 5 * this.canvasScale
-            ctx.drawImage(cityImg, ...this.scale(cityX, cityY, size/2, size/2), size, size)
+            ctx.drawImage(cityImg, ...this.scaleToMap(cityX, cityY, size/2, size/2), size, size)
         }
     }
 
-    scale(x, y, dx=0, dy=0) {
+    scaleToMap(x, y, dx=0, dy=0) {
         return [x * this.canvasScale - dx, y * this.canvasScale - dy]
     }
 
@@ -206,6 +206,7 @@ export class OversimplifiedBoard extends React.Component {
     }
 
     toPath(tile, i, delimID = "") {
+        let size = 5
         return (
             <>
                 <path
@@ -215,10 +216,11 @@ export class OversimplifiedBoard extends React.Component {
                     fill={tile.data.color}
                     d={tile.polygon.map((point, i) => { if (i > 0) return "L" + point[0] + " " + point[1]; else return "M" + point[0] + " " + point[1] }).join(" ") + "Z"}
                     onClick={() => this.setActiveTile(i)}
-                />
+                    />
                 <clipPath id={"c" + tile.id + delimID} key={"c" + tile.id + delimID}>
                     <use xlinkHref={"#" + tile.id + delimID} />
                 </clipPath>
+                {tile.data.cities.map(([x, y]) => <image x={x-(size/2)} y={y-(size/2)} width={size} height={size} href={city}/>)}
             </>)
     }
 
@@ -230,8 +232,15 @@ export class OversimplifiedBoard extends React.Component {
         }
     }
 
+    makeActionButtons() {
+        var buttons = []
+        for (let i = 0; i < 4; i++) {
+            buttons.push(<div className="tile-actions-box"><h3>Move {i}</h3></div>)
+        }
+        return buttons
+    }
+
     render() {
-        
         if (this.state.boardLoaded) {
             var activeI = this.state.activeTile
             var activeTile = this.board.mapTiles[activeI]
@@ -256,6 +265,9 @@ export class OversimplifiedBoard extends React.Component {
 
                         <div className="ui-box" style={{ gridArea: "right" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
                             <TileInfo tileData={activeTile.data}/>
+                            <div className="tile-actions-menu">
+                                    {this.makeActionButtons()}
+                            </div>
                         </div>
 
                         <div className="ui-box" style={{ gridArea: "bottom", display:"flex" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
@@ -273,14 +285,7 @@ export class OversimplifiedBoard extends React.Component {
                 </>
             )
         } else {
-            return (
-                <div className="row flex-center height100">
-                    <div className="col top-space">
-                        <h2>Loading Board...</h2>
-                        <div className="loader"/>
-                    </div>
-                </div>
-            )
+            return <LoadingBoard/>
         }
     }
 
@@ -339,6 +344,17 @@ function TileInfo({tileData}) {
         <FieldContent field="Biome" content={tileData.biome} />
         <FieldContent field="Color" content={tileData.color} />
     </>)
+}
+
+function LoadingBoard() {
+    return (
+        <div className="row flex-center height100">
+            <div className="col top-space">
+                <h2>Loading Board...</h2>
+                <div className="loader"/>
+            </div>
+        </div>
+    )
 }
 
 function clamp(min, max, num) {

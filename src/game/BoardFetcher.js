@@ -69,7 +69,7 @@ export default class BoardFetcher {
     }
 
     getTypeNamePairs() {
-        return this.getTypes().map(t => [t, this.boards[t]]).flat()
+        return this.getTypes().map(t => [t, this.boards[t]])
     }
 
     size() {

@@ -8,34 +8,19 @@ export const HomePage = (props) => (
         <h1 className="title">Oversimplified</h1>
         <h2>A game of imperialism ruled by alliances, trade, and warfare</h2>
 
-        <div className="row flex-center">
+        <div className="home-menu">
           <Buttons.HelpButton />
-          <div className="col">
-            <p>Learn the rules!</p>
-          </div>
-        </div>
+          <p>Learn the rules!</p>
 
-        <div className="row flex-center">
           <Buttons.SandboxButton />
-          <div className="col">
-            <p>Experiment with the game!</p>
-          </div>
-        </div>
+          <p>Experiment with the game!</p>
 
-        <div className="row flex-center">
           <Buttons.LobbyButton />
-          <div className="col">
-            <p>Join an existing game!</p>
-          </div>
-        </div>
-
-        <div className="row flex-center">
+          <p>Join an existing game!</p>
+          
           <Buttons.GenerateMapButton />
-          <div className="col">
-            <p>Generate a new game map!</p>
-          </div>
+          <p>Generate a new game map!</p>
         </div>
-
         <div className="row flex-center">
           <div className="col" style={{ textAlign: "center" }}>
             <p>

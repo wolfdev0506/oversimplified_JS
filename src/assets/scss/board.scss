@@ -38,6 +38,7 @@ ul.resources-list {
         border-radius: 5px;
         justify-content: center;
         align-items: center;
+        cursor: pointer;
 
         &:hover {
             background-color: rgba($main-accent, 0.4);
@@ -53,6 +54,26 @@ ul.resources-list {
 
         p {
             margin: 0;
+        }
+    }
+}
+
+.tile-actions-menu {
+    width: 100%;
+    display: grid;
+    grid-template: repeat(2, 1fr) / repeat(2, 1fr);
+    gap: 10px;
+
+    .tile-actions-box {
+        background-color: rgba($main-accent, 0.2);
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 12px;
+
+        &:hover {
+            background-color: rgba($main-accent, 0.4);
         }
     }
 }

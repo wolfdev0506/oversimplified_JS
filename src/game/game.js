@@ -16,38 +16,54 @@ export const Oversimplified = {
         pickTiles: {
             start: true,
             next: 'placeBuildings',
+            moves: {pickTile},
+            moveLimit: 1,
+            endIf: endIfPickTiles
         },
 
         placeBuildings: {
             next: 'play',
-
+            moves: {buyBuilding},
+            moveLimit: 1,
+            endIf: endIfPlaceBuildings
         },
-        play: {
+
+        build: {
+            next: "train",
             moves: {
-                moveTo: (G, ctx, fromID, toID, troops) => {
-                
-                },
-                attackTile: (G, ctx, fromID, toID, troops) => {
-
-                },
-                buildBuilding: (G, ctx, tileID, buildingType) => {
-
-                },
-                makeTroops: (G, ctx, buildingID, troopType) => {
-
-                },
-                trade: (G, ctx, toPlayerID, give, receive) => {
-
-                }
+                buyBuilding,
+                buildBuilding,
+                offerTrade,
             }
+        },
 
-        }
+        train: {
+            next: "fight1",
+            moves: {
+                trainTroops,
+                placeTroops,
+            }
+        },
 
+        fight1: {
+            next: "fight2",
+            moves: {moveTroops}
+        },
+
+        fight2: {
+            next: "fight3",
+            moves: {moveTroops}
+        },
+        
+        fight3: {
+            next: "fight1",
+            moves: {moveTroops}
+        },
     },
 
-    turn: {
-        moveLimit: 6
-    },
+    // turn: {
+    //     moveLimit: 6
+    // },
 
     endIf: (G, ctx) => {
         return false
@@ -56,14 +72,50 @@ export const Oversimplified = {
     disableUndo: true,
 }
 
+function pickTile(G, ctx, tileID) {
+    G.hands[ctx.currentPlayer].tiles.push(tileID)
+}
+
+function moveTroops(G, ctx, fromTileID, toTileID, amount, troopType) {
+
+}
+
+function trainTroops(G, ctx, amount, troopType) {
+    
+}
+
+function placeTroops(G, ctx, tileID, amount, troopType) {
+    // TODO: troops can only be placed on tiles with a troop factory and for ocean troops, only ocean tiles adjacent to the factory
+}
+
+function offerTrade(G, ctx, offerGive, offerReceive, toPlayerID) {
+
+}
+
+function buyBuilding(G, ctx, buildingType) {
+
+}
+
+function buildBuilding(G, ctx, tileID, buildingType) {
+
+}
+
+function endIfPickTiles(G, ctx) {
+    return Object.values(G.hands).map(v => v.tiles.length === 4).reduce((prev, curr) => prev && curr)
+}
+
+function endIfPlaceBuildings(G, ctx) {
+    return Object.values(G.hands).map(v => v.buildings.length === 4).reduce((prev, curr) => prev && curr)
+}
+
 
 function makeHands(playerIDs) {
     var hands = {}
 
     for (const id of playerIDs) {
         hands[id] = {
-            resources: Object.keys(ResourcePieces).map(v => v === "gold" ? [v, 100] : [v, 0]),
-            territory: [],  // list of tile IDs
+            resources: Object.keys(ResourcePieces).map(v => ["gold", "oil"].includes(v) ? [v, 100] : [v, 0]),
+            tiles: [],  // list of tile IDs
             buildings: [],  // list of each building,  {...piece, location, level (possibly)}
             troops: [],     // list of each group of troops,  {...piece, location, amount, level (possibly)}
             hand: [[TroopFactoryPieces.factory, 1], [StoragePieces.warehouse, 1]]
