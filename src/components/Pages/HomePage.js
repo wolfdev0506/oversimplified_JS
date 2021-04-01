@@ -6,7 +6,7 @@ export const HomePage = (props) => (
     <div className="row flex-center">
       <div>
         <h1 className="title">Oversimplified</h1>
-        <h2>A game of global domination ruled by alliances, trade, and deceit</h2>
+        <h2>A game of imperialism ruled by alliances, trade, and warfare</h2>
 
         <div className="row flex-center">
           <Buttons.HelpButton />
@@ -32,17 +32,17 @@ export const HomePage = (props) => (
         <div className="row flex-center">
           <Buttons.GenerateMapButton />
           <div className="col">
-            <p>Generate Game Board!</p>
+            <p>Generate a new game map!</p>
           </div>
         </div>
 
         <div className="row flex-center">
           <div className="col" style={{ textAlign: "center" }}>
             <p>
-              Created by Max Gordon and Akiva Dienstfrey
+              Created by <a href="https://github.com/JohnnyWobble" target="_blank" rel="noopener noreferrer" className="bold">Max Gordon</a> in collaboration with <a href="https://github.com/AkivaDienstfrey" target="_blank" rel="noopener noreferrer" className="bold">Akiva Dienstfrey</a>
             </p>
             <p>
-              Explore the project on <a href="https://github.com/JohnnyWobble/oversimplified" target="_blank" rel="noopener noreferrer" style={{ "fontWeight": "600" }}> Github</a>
+              Explore the project on <a href="https://github.com/JohnnyWobble/oversimplified" target="_blank" rel="noopener noreferrer" className="bold">Github</a>
             </p>
           </div>
         </div>
