@@ -21,7 +21,9 @@ export class CreatePage extends React.Component {
     }
 
     getRandBoard() {
-        const [boardType, boardName] = this.boardFetcher.getTypeNamePairs()[Math.floor(Math.random() * this.boardFetcher.size())]
+        const [boardType, boardNames] = this.boardFetcher.getTypeNamePairs()[Math.floor(Math.random() * this.boardFetcher.size())]
+        const boardName = boardNames[Math.floor(Math.random() * boardNames.length)]
+
         return {boardType, boardName}
     }
 

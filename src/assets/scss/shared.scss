@@ -43,6 +43,7 @@ svg, canvas {
 
 canvas {
     position: absolute;
+    border-width: 8px;
 }
 
 a {
@@ -51,6 +52,10 @@ a {
 
     &:hover {
         color: $dark-accent;
+    }
+
+    &.bold {
+        color: $main-accent;
     }
 }
 
@@ -303,9 +308,9 @@ li p, li h3 {
 
 .text-box {
     @extend .outline;
-    padding: 5px;
+    padding: 8px;
 
-    h3 {
+    h2, h3 {
         font-weight: 500;
         margin: 8px 0;
     }
@@ -420,4 +425,27 @@ div.loading-bar {
         background-color: $main-accent;
         border-radius: inherit;
     }
+}
+
+.home-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+
+    & > div:nth-child(2n) {
+        margin-right: auto;
+    }
+
+    & > div:nth-child(2n + 1) {
+        margin-left: auto;
+    }
+
+    p {
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+}
+
+.no-top-margin {
+    margin-top: 0 !important; // I hate using this but nothing else is working :(
 }

@@ -4,7 +4,7 @@ import * as serviceWorker from './serviceWorker';
 import { Route, BrowserRouter as Router, Switch } from "react-router-dom";
 import Pages from './components/Pages'
 import Cookies from 'universal-cookie'
-import './assets/css/shared.css'
+import './assets/scss/shared.scss'
 
 
 const serverURL = window.location.hostname

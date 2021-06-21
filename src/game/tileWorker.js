@@ -95,7 +95,7 @@ function nextTile(polygons, polygonsIndex, touching, mapTiles, oceanCounter, poi
         touchCellsIndex: [...new Set(polygonIndexes.map((v) => [...voronoi.neighbors(v)]).flat().filter((v) => !(polygonIndexes.includes(v))))],
         data: { 
             isOcean: !isLand, 
-            color: (!isLand ? "blue" : "green"), 
+            color: (isLand ? "green" : "blue"), 
             center: getMiddlestPoint(polygonIndexes.map((v) => points[v])),
             name: isLand? names.splice(Math.floor(Math.random() * names.length), 1)[0] : ("Ocean " + (oceanCounter+= 1)),
             cities: isLand ? new Array(Math.min(num, cityPoints.length)).fill(0).map(() => cityPoints.splice(Math.floor(cityPoints.length * Math.random()), 1)[0]) : []
