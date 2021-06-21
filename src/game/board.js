@@ -4,6 +4,7 @@ import BoardFetcher from './BoardFetcher'
 import city from '../assets/icons/city.png'
 import GamePieceIcons from './GamePieceIcons'
 import '../assets/scss/board.scss'
+import { Oversimplified } from './game'
 
 const cityImg = new Image()
 cityImg.src = city
@@ -220,7 +221,7 @@ export class OversimplifiedBoard extends React.Component {
                 <clipPath id={"c" + tile.id + delimID} key={"c" + tile.id + delimID}>
                     <use xlinkHref={"#" + tile.id + delimID} />
                 </clipPath>
-                {tile.data.cities.map(([x, y]) => <image x={x-(size/2)} y={y-(size/2)} width={size} height={size} href={city}/>)}
+                {tile.data.cities.map(([x, y], i) => <image x={x-(size/2)} y={y-(size/2)} width={size} height={size} href={city} key={i}/>)}
             </>)
     }
 
@@ -232,12 +233,27 @@ export class OversimplifiedBoard extends React.Component {
         }
     }
 
-    makeActionButtons() {
+    makeActionButtons(actions) {
+        let moves = this.getAllValidMoves()
         var buttons = []
-        for (let i = 0; i < 4; i++) {
-            buttons.push(<div className="tile-actions-box"><h3>Move {i}</h3></div>)
+        for (let moveName in moves) {
+            buttons.push(<div className="tile-actions-button" onClick={() => this.doMove(moves[moveName])} key={moveName}><h3>{moveName}</h3></div>)
         }
         return buttons
+    }
+
+    doMove(move) {
+        console.log("Doing Move " + move)
+    }
+
+    getAllValidMoves() {
+        let moves = {}
+        let phase = this.props.ctx.phase
+
+        for (let move in Oversimplified.phases[phase].moves) {
+            moves[move] = this.props.moves[move]
+        }
+        return moves
     }
 
     render() {
@@ -265,9 +281,7 @@ export class OversimplifiedBoard extends React.Component {
 
                         <div className="ui-box" style={{ gridArea: "right" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
                             <TileInfo tileData={activeTile.data}/>
-                            <div className="tile-actions-menu">
-                                    {this.makeActionButtons()}
-                            </div>
+                            {this.makeActionButtons()}
                         </div>
 
                         <div className="ui-box" style={{ gridArea: "bottom", display:"flex" }} onMouseMove={e => this.handleMouseMove(e)} onMouseUp={() => this.setDragging(false)}>
@@ -299,21 +313,21 @@ function SelectorMenu({hand, width, onClick, activeIdx}) {
     for (let i = 0; i < 14; i++) {
         if (hand[i] !== undefined) {
             elements.push(
-                <div className={`selector-box ${activeIdx === i? "active": ""}`} style={{width: `${width}px`}} onClick={() => onClick(i)}>
+                <div className={`selector-box ${activeIdx === i? "active": ""}`} style={{width: `${width}px`}} onClick={() => onClick(i)} key={i}>
                     <img src={GamePieceIcons[hand[i][0].name]} alt="pic"/>
                     <p>{`${capitalize(camelCaseToSpaceCase(hand[i][0].name))}: ${hand[i][1]}`}</p>
                 </div>
             )
         } else {
-            elements.push(<div className="selector-box" style={{width: `${width}px`}}/>)
+            elements.push(<div className="selector-box" style={{width: `${width}px`}} key={i}/>)
 
         }
     }
     return elements
 }
 
-function FieldContent({ field, content, empty }) {
-    return <h3><span className="bold">{field + ":"}</span>{" " + (content ? content : empty)}</h3>
+function FieldContent({ field, content, empty, className }) {
+    return <h2 className={className}><span className="bold">{field + ":"}</span>{" " + (content ? content : empty)}</h2>
 }
 
 function ResourcesList({ resources }) {
@@ -323,7 +337,7 @@ function ResourcesList({ resources }) {
                 <p>Resource</p>
                 <p>Amount</p> 
             </li>
-            {resources.map(([v, n], i) => <Resource name={v} amount={n}/>)}
+            {resources.map(([v, n], i) => <Resource name={v} amount={n} key={v}/>)}
         </ul>
     )
 } 
@@ -339,7 +353,7 @@ function Resource({name, amount}) {
 
 function TileInfo({tileData}) {
     return (<>
-        <FieldContent field="Name" content={tileData.name} />
+        <FieldContent field="Name" content={tileData.name} className="no-top-margin"/>
         <FieldContent field="Empire" content={tileData.region} empty="Independent" />
         <FieldContent field="Biome" content={tileData.biome} />
         <FieldContent field="Color" content={tileData.color} />

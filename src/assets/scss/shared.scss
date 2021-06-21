@@ -308,9 +308,9 @@ li p, li h3 {
 
 .text-box {
     @extend .outline;
-    padding: 5px;
+    padding: 8px;
 
-    h3 {
+    h2, h3 {
         font-weight: 500;
         margin: 8px 0;
     }
@@ -444,4 +444,8 @@ div.loading-bar {
         margin-top: auto;
         margin-bottom: auto;
     }
+}
+
+.no-top-margin {
+    margin-top: 0 !important; // I hate using this but nothing else is working :(
 }

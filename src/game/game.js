@@ -56,7 +56,7 @@ export const Oversimplified = {
         },
         
         fight3: {
-            next: "fight1",
+            next: "build",
             moves: {moveTroops}
         },
     },
@@ -100,12 +100,13 @@ function buildBuilding(G, ctx, tileID, buildingType) {
 
 }
 
-function endIfPickTiles(G, ctx) {
+
+function endIfPickTiles(G, ctx) {  // checks if everyone has picked 4 tiles
     return Object.values(G.hands).map(v => v.tiles.length === 4).reduce((prev, curr) => prev && curr)
 }
 
-function endIfPlaceBuildings(G, ctx) {
-    return Object.values(G.hands).map(v => v.buildings.length === 4).reduce((prev, curr) => prev && curr)
+function endIfPlaceBuildings(G, ctx) {  // checks if everyone has place their 2 buildings
+    return Object.values(G.hands).map(v => v.buildings.length === 2).reduce((prev, curr) => prev && curr)
 }
 
 
